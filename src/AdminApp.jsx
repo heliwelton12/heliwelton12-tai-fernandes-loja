@@ -114,6 +114,9 @@ export default function AdminApp() {
   const [storeSettings, setStoreSettings] = useState(DEFAULT_STORE_SETTINGS)
   const [settingsSaving, setSettingsSaving] = useState(false)
   const [settingsMessage, setSettingsMessage] = useState('')
+  const [categoryCoverDrafts, setCategoryCoverDrafts] = useState({})
+  const [categoryCoverSaving, setCategoryCoverSaving] = useState({})
+  const [categoryCoverMessage, setCategoryCoverMessage] = useState('')
 
   const editing = Boolean(form.id)
 
@@ -256,10 +259,21 @@ export default function AdminApp() {
   }
 
   async function loadCategories() {
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('categories')
-      .select('id, name, slug, sort_order')
+      .select('id, name, slug, sort_order, cover_url, cover_storage_path')
       .order('sort_order')
+
+    // Compatibilidade enquanto a migração de capas ainda não foi executada.
+    if (error) {
+      const fallback = await supabase
+        .from('categories')
+        .select('id, name, slug, sort_order')
+        .order('sort_order')
+
+      data = fallback.data
+      error = fallback.error
+    }
 
     if (!error) {
       setCategories(data || [])
@@ -267,6 +281,147 @@ export default function AdminApp() {
         ...current,
         categoryId: current.categoryId || data?.[0]?.id || '',
       }))
+    }
+  }
+
+  function selectCategoryCover(category, file) {
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      setCategoryCoverMessage('Escolha uma imagem válida para a capa.')
+      return
+    }
+
+    if (file.size > 8 * 1024 * 1024) {
+      setCategoryCoverMessage('A imagem deve ter no máximo 8 MB.')
+      return
+    }
+
+    setCategoryCoverDrafts((current) => {
+      const previous = current[category.id]
+      if (previous?.previewUrl) URL.revokeObjectURL(previous.previewUrl)
+
+      return {
+        ...current,
+        [category.id]: {
+          file,
+          previewUrl: URL.createObjectURL(file),
+        },
+      }
+    })
+
+    setCategoryCoverMessage('')
+  }
+
+  function clearCategoryCoverDraft(categoryId) {
+    setCategoryCoverDrafts((current) => {
+      const draft = current[categoryId]
+      if (draft?.previewUrl) URL.revokeObjectURL(draft.previewUrl)
+      const next = { ...current }
+      delete next[categoryId]
+      return next
+    })
+  }
+
+  async function saveCategoryCover(category) {
+    const draft = categoryCoverDrafts[category.id]
+    if (!draft?.file) {
+      setCategoryCoverMessage(`Escolha uma imagem para ${category.name}.`)
+      return
+    }
+
+    setCategoryCoverSaving((current) => ({ ...current, [category.id]: true }))
+    setCategoryCoverMessage('')
+
+    const oldStoragePath = category.cover_storage_path || ''
+    let newStoragePath = ''
+
+    try {
+      const file = draft.file
+      newStoragePath = `categories/${category.slug}/${Date.now()}-${fileNameSafe(file.name)}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('product-media')
+        .upload(newStoragePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: file.type,
+        })
+
+      if (uploadError) throw uploadError
+
+      const { data: publicUrlData } = supabase.storage
+        .from('product-media')
+        .getPublicUrl(newStoragePath)
+
+      const { error: updateError } = await supabase
+        .from('categories')
+        .update({
+          cover_url: publicUrlData.publicUrl,
+          cover_storage_path: newStoragePath,
+        })
+        .eq('id', category.id)
+
+      if (updateError) throw updateError
+
+      if (oldStoragePath && oldStoragePath !== newStoragePath) {
+        const { error: removeOldError } = await supabase.storage
+          .from('product-media')
+          .remove([oldStoragePath])
+
+        if (removeOldError) {
+          console.warn('A capa foi salva, mas a imagem anterior não pôde ser removida.', removeOldError)
+        }
+      }
+
+      clearCategoryCoverDraft(category.id)
+      await loadCategories()
+      setCategoryCoverMessage(`Capa de ${category.name} atualizada com sucesso.`)
+    } catch (error) {
+      console.error(error)
+
+      if (newStoragePath) {
+        await supabase.storage.from('product-media').remove([newStoragePath])
+      }
+
+      setCategoryCoverMessage(`Não foi possível atualizar a capa: ${error.message}`)
+    } finally {
+      setCategoryCoverSaving((current) => ({ ...current, [category.id]: false }))
+    }
+  }
+
+  async function removeCategoryCover(category) {
+    if (!category.cover_url) return
+    if (!window.confirm(`Remover a capa personalizada de ${category.name}?`)) return
+
+    setCategoryCoverSaving((current) => ({ ...current, [category.id]: true }))
+    setCategoryCoverMessage('')
+
+    try {
+      const { error: updateError } = await supabase
+        .from('categories')
+        .update({ cover_url: null, cover_storage_path: null })
+        .eq('id', category.id)
+
+      if (updateError) throw updateError
+
+      if (category.cover_storage_path) {
+        const { error: storageError } = await supabase.storage
+          .from('product-media')
+          .remove([category.cover_storage_path])
+
+        if (storageError) {
+          console.warn('A capa foi removida do site, mas o arquivo antigo permaneceu no Storage.', storageError)
+        }
+      }
+
+      clearCategoryCoverDraft(category.id)
+      await loadCategories()
+      setCategoryCoverMessage(`Capa personalizada de ${category.name} removida.`)
+    } catch (error) {
+      setCategoryCoverMessage(`Não foi possível remover a capa: ${error.message}`)
+    } finally {
+      setCategoryCoverSaving((current) => ({ ...current, [category.id]: false }))
     }
   }
 
@@ -1327,6 +1482,100 @@ export default function AdminApp() {
               {settingsSaving ? 'Salvando configurações…' : 'Salvar configurações da loja'}
             </button>
           </form>
+
+          <div className="admin-category-covers">
+            <div className="admin-settings-block-title">
+              <div>
+                <p className="admin-kicker">CAPAS DAS CATEGORIAS</p>
+                <h3>Imagens da página inicial</h3>
+                <p>
+                  Troque as capas de Lingeries, Conjuntos, Camisolas, Pijamas e Sex Shop sem editar o código.
+                </p>
+              </div>
+            </div>
+
+            {categoryCoverMessage && (
+              <div className="admin-message">{categoryCoverMessage}</div>
+            )}
+
+            <div className="admin-category-cover-grid">
+              {categories.map((category) => {
+                const draft = categoryCoverDrafts[category.id]
+                const preview = draft?.previewUrl || category.cover_url || ''
+                const savingCover = Boolean(categoryCoverSaving[category.id])
+
+                return (
+                  <article className="admin-category-cover-card" key={category.id}>
+                    <div className="admin-category-cover-preview">
+                      {preview ? (
+                        <img src={preview} alt={`Capa de ${category.name}`} />
+                      ) : (
+                        <span>{category.name.slice(0, 2).toUpperCase()}</span>
+                      )}
+                    </div>
+
+                    <div className="admin-category-cover-content">
+                      <div>
+                        <strong>{category.name}</strong>
+                        <small>
+                          {draft
+                            ? 'Nova imagem selecionada — salve para publicar.'
+                            : category.cover_url
+                              ? 'Capa personalizada ativa.'
+                              : 'Usando a capa padrão do site.'}
+                        </small>
+                      </div>
+
+                      <label className="admin-category-cover-picker">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(event) => {
+                            const file = event.target.files?.[0]
+                            selectCategoryCover(category, file)
+                            event.target.value = ''
+                          }}
+                        />
+                        <span>{draft ? 'Escolher outra imagem' : 'Escolher imagem'}</span>
+                      </label>
+
+                      <div className="admin-category-cover-actions">
+                        <button
+                          type="button"
+                          className="primary"
+                          disabled={!draft || savingCover}
+                          onClick={() => saveCategoryCover(category)}
+                        >
+                          {savingCover ? 'Salvando…' : 'Salvar capa'}
+                        </button>
+
+                        {draft && (
+                          <button
+                            type="button"
+                            disabled={savingCover}
+                            onClick={() => clearCategoryCoverDraft(category.id)}
+                          >
+                            Cancelar
+                          </button>
+                        )}
+
+                        {category.cover_url && !draft && (
+                          <button
+                            type="button"
+                            className="danger"
+                            disabled={savingCover}
+                            onClick={() => removeCategoryCover(category)}
+                          >
+                            Remover personalizada
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          </div>
         </section>
       </main>
 

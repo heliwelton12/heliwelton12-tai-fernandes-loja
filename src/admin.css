@@ -1185,3 +1185,163 @@ textarea {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+
+/* v32 — capas editáveis das categorias */
+.admin-category-covers {
+  display: grid;
+  gap: 16px;
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px solid var(--admin-line);
+}
+
+.admin-category-covers .admin-settings-block-title h3 {
+  margin-top: 4px;
+}
+
+.admin-category-cover-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-category-cover-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--admin-line);
+  border-radius: 18px;
+  background: #fffafb;
+}
+
+.admin-category-cover-preview {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: linear-gradient(145deg, #f8e7ec, #edd0da);
+  color: var(--admin-rose);
+  font-family: 'Playfair Display', serif;
+  font-size: 38px;
+}
+
+.admin-category-cover-preview img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}
+
+.admin-category-cover-content {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.admin-category-cover-content > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.admin-category-cover-content strong {
+  color: var(--admin-dark);
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+}
+
+.admin-category-cover-content small {
+  min-height: 29px;
+  color: var(--admin-muted);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.admin-category-cover-picker {
+  position: relative;
+  min-height: 40px;
+  display: grid;
+  place-items: center;
+  padding: 0 10px;
+  border: 1px dashed #d7a8b6;
+  border-radius: 12px;
+  background: white;
+  color: var(--admin-rose);
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+  cursor: pointer;
+}
+
+.admin-category-cover-picker input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-category-cover-actions {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-category-cover-actions button {
+  min-height: 36px;
+  padding: 0 9px;
+  border: 1px solid var(--admin-line);
+  border-radius: 999px;
+  background: white;
+  color: var(--admin-dark);
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-category-cover-actions button.primary {
+  border-color: var(--admin-rose);
+  background: var(--admin-rose);
+  color: white;
+}
+
+.admin-category-cover-actions button.danger {
+  color: #a43b55;
+}
+
+.admin-category-cover-actions button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1180px) {
+  .admin-category-cover-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .admin-category-cover-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 430px) {
+  .admin-category-cover-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-category-cover-card {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr);
+  }
+
+  .admin-category-cover-preview {
+    aspect-ratio: auto;
+    min-height: 164px;
+  }
+
+  .admin-category-cover-content small {
+    min-height: 0;
+  }
+}

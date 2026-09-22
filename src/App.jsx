@@ -227,7 +227,7 @@ const realProducts = [
 const staticCatalogProducts = [...realProducts, ...demoProducts]
 
 
-const categories = [
+const DEFAULT_CATEGORIES = [
   { name: 'Lingeries', subtitle: 'Delicadeza para todos os dias', tone: 'rose', image: '/products/lingerie-01.webp' },
   { name: 'Conjuntos', subtitle: 'Combinações que encantam', tone: 'wine' },
   { name: 'Camisolas', subtitle: 'Leveza e feminilidade', tone: 'blush' },
@@ -397,6 +397,7 @@ function App() {
   const [cartPulse, setCartPulse] = useState(false)
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [pajamaAudience, setPajamaAudience] = useState('Todos')
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES)
 
   const {
     products: catalogProducts,
@@ -405,6 +406,55 @@ function App() {
   } = useCatalogProducts(staticCatalogProducts)
 
   const { settings: storeSettings } = useStoreSettings()
+
+  useEffect(() => {
+    let alive = true
+
+    async function loadCategoryCovers() {
+      if (!supabaseConfigured || !supabase) return
+
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, name, slug, sort_order, cover_url, cover_storage_path')
+        .order('sort_order')
+
+      if (!alive) return
+
+      if (error) {
+        console.warn('Falha ao carregar capas das categorias; usando capas padrão.', error)
+        return
+      }
+
+      const defaultsByName = new Map(
+        DEFAULT_CATEGORIES.map((category) => [category.name, category])
+      )
+
+      const merged = (data || []).map((row) => {
+        const fallback = defaultsByName.get(row.name) || {
+          name: row.name,
+          subtitle: '',
+          tone: 'rose',
+        }
+
+        return {
+          ...fallback,
+          id: row.id,
+          slug: row.slug,
+          sortOrder: row.sort_order,
+          image: row.cover_url || fallback.image || '',
+          coverStoragePath: row.cover_storage_path || '',
+        }
+      })
+
+      if (merged.length) setCategories(merged)
+    }
+
+    loadCategoryCovers()
+
+    return () => {
+      alive = false
+    }
+  }, [])
 
   const whatsappNumber = normalizeWhatsapp(storeSettings.whatsapp || DEFAULT_STORE_SETTINGS.whatsapp)
   const instagramUrl = storeSettings.instagram_url || DEFAULT_STORE_SETTINGS.instagram_url
