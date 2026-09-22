@@ -4424,3 +4424,43 @@ a {
     line-height: 1.45;
   }
 }
+
+/* v37 — imagens mais nítidas + remoção do efeito acinzentado nas categorias */
+.categories-section,
+.categories-carousel-shell,
+.categories-carousel-topline,
+.categories-track {
+  background: #fffdfd !important;
+}
+
+/* O bloco acinzentado percebido abaixo dos cards vinha da soma das sombras. */
+.categories-track .category-card {
+  box-shadow: 0 8px 24px rgba(190, 83, 111, 0.045);
+}
+
+.categories-track .category-card:hover {
+  box-shadow: 0 12px 30px rgba(190, 83, 111, 0.075);
+}
+
+/* Evita suavização causada por escala/filtro no navegador e mantém a foto mais limpa. */
+.categories-track .category-visual.has-image img,
+.categories-track .category-card:hover .category-visual.has-image img {
+  display: block;
+  object-fit: cover;
+  object-position: center 16%;
+  transform: none !important;
+  filter: none !important;
+  transition: none;
+  image-rendering: auto;
+}
+
+/* Menos área abaixo do carrossel para não formar uma faixa visual separada. */
+.categories-track {
+  padding-bottom: 4px;
+}
+
+@media (max-width: 680px) {
+  .categories-track {
+    padding-bottom: 3px;
+  }
+}
