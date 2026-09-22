@@ -51,6 +51,29 @@ function getAdminDisplayName(user) {
   )
 }
 
+function getLoginErrorMessage(error) {
+  const code = error?.code || ''
+  const message = String(error?.message || '').toLowerCase()
+
+  if (code === 'invalid_credentials' || message.includes('invalid login credentials')) {
+    return 'E-mail ou senha incorretos.'
+  }
+
+  if (code === 'email_not_confirmed' || message.includes('email not confirmed')) {
+    return 'Confirme o e-mail antes de entrar no painel.'
+  }
+
+  if (code === 'over_request_rate_limit' || message.includes('rate limit')) {
+    return 'Muitas tentativas em pouco tempo. Aguarde um instante e tente novamente.'
+  }
+
+  if (message.includes('network') || message.includes('fetch')) {
+    return 'Não foi possível conectar ao servidor. Verifique sua internet e tente novamente.'
+  }
+
+  return 'Não foi possível entrar. Confira seus dados e tente novamente.'
+}
+
 function uniqueList(value) {
   return [...new Set(
     String(value || '')
@@ -75,6 +98,7 @@ export default function AdminApp() {
   const [adminProfile, setAdminProfile] = useState(null)
   const [login, setLogin] = useState({ email: '', password: '' })
   const [loginError, setLoginError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [categories, setCategories] = useState([])
   const [products, setProducts] = useState([])
   const [form, setForm] = useState(EMPTY_FORM)
@@ -222,7 +246,7 @@ export default function AdminApp() {
       password: login.password,
     })
 
-    if (error) setLoginError(error.message)
+    if (error) setLoginError(getLoginErrorMessage(error))
   }
 
   async function signOut() {
@@ -672,12 +696,32 @@ export default function AdminApp() {
 
           <label>
             <span>Senha</span>
-            <input
-              type="password"
-              required
-              value={login.password}
-              onChange={(event) => setLogin((current) => ({ ...current, password: event.target.value }))}
-            />
+            <div className="admin-password-field">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                value={login.password}
+                onChange={(event) => setLogin((current) => ({ ...current, password: event.target.value }))}
+              />
+              <button
+                className="admin-password-toggle"
+                type="button"
+                onClick={() => setShowPassword((current) => !current)}
+                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                title={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+              >
+                {showPassword ? (
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 4.2A10.8 10.8 0 0112 4c5.4 0 9 5.2 9 5.2a16.7 16.7 0 01-3 3.6M6.3 6.3C4.2 7.8 3 9.2 3 9.2S6.6 16 12 16c1.2 0 2.3-.3 3.3-.7" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 12s3.6-6 9-6 9 6 9 6-3.6 6-9 6-9-6-9-6z" />
+                    <circle cx="12" cy="12" r="2.5" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </label>
 
           {loginError && <div className="admin-error">{loginError}</div>}

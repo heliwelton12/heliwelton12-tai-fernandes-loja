@@ -1137,3 +1137,51 @@ textarea {
     min-height: 50px;
   }
 }
+
+
+/* v30 — login em português e exibição de senha */
+.admin-password-field {
+  position: relative;
+}
+
+.admin-login-card .admin-password-field input {
+  padding-right: 52px;
+}
+
+.admin-login-card .admin-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  width: 38px;
+  height: 38px;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #7d6970;
+  box-shadow: none;
+}
+
+.admin-login-card .admin-password-toggle:hover {
+  background: #fff3f6;
+  color: var(--admin-rose);
+}
+
+.admin-login-card .admin-password-toggle:focus-visible {
+  outline: 2px solid rgba(190, 83, 111, .35);
+  outline-offset: 1px;
+}
+
+.admin-password-toggle svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

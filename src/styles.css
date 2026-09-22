@@ -812,7 +812,7 @@ a {
 .floating-whatsapp {
   position: fixed;
   right: 18px;
-  bottom: 18px;
+  bottom: 78px;
   z-index: 70;
   min-height: 48px;
   display: inline-flex;
@@ -3382,7 +3382,7 @@ a {
 .back-to-top {
   position: fixed;
   right: 22px;
-  bottom: 82px;
+  bottom: 140px;
   z-index: 85;
   width: 46px;
   height: 46px;
@@ -3673,13 +3673,13 @@ a {
 
   .floating-whatsapp {
     right: 12px;
-    bottom: 14px;
+    bottom: 78px;
   }
 
   .back-to-top {
     display: grid;
     right: 14px;
-    bottom: 76px;
+    bottom: 140px;
   }
 
   .store-toast {
@@ -3768,7 +3768,7 @@ a {
 @media (min-width: 981px) {
   .back-to-top {
     right: 24px;
-    bottom: 82px;
+    bottom: 140px;
   }
 }
 
@@ -3986,3 +3986,7 @@ a {
 .footer-column span {
   line-height: 1.45;
 }
+
+
+/* v31 — evita sobreposição com badge do Netlify */
+/* Mantém o WhatsApp acima da área inferior e o botão de topo acima dele. */
