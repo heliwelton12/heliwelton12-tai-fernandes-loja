@@ -4464,3 +4464,72 @@ a {
     padding-bottom: 3px;
   }
 }
+
+/* v38 — recupera presença/nitidez visual das capas sem perder o carrossel horizontal */
+/* Na V36 a coluna da imagem ficou estreita demais (~43% de um card de ~300px),
+   então a foto passou a ser exibida em uma área muito menor do que na versão vertical.
+   Aqui devolvemos mais largura real para a imagem e reduzimos o recorte percebido. */
+.categories-track .category-card {
+  flex-basis: clamp(340px, 30vw, 380px);
+}
+
+.categories-track .category-card .category-card-hitarea {
+  grid-template-columns: minmax(165px, 48%) minmax(0, 1fr);
+  min-height: 218px;
+}
+
+.categories-track .category-visual {
+  height: 218px;
+  padding: 0;
+  background: transparent;
+}
+
+.categories-track .category-visual.has-image {
+  overflow: hidden;
+  border-radius: 18px 0 0 18px;
+}
+
+.categories-track .category-visual.has-image img,
+.categories-track .category-card:hover .category-visual.has-image img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  display: block;
+  object-fit: cover;
+  object-position: center 13%;
+  border-radius: 0;
+  transform: none !important;
+  filter: none !important;
+  transition: none !important;
+  backface-visibility: hidden;
+}
+
+.categories-track .category-card-content {
+  min-height: 218px;
+  padding: 20px 18px 18px;
+}
+
+@media (max-width: 980px) {
+  .categories-track .category-card {
+    flex-basis: clamp(330px, 62vw, 370px);
+  }
+}
+
+@media (max-width: 680px) {
+  .categories-track .category-card {
+    flex: 0 0 min(90vw, 350px);
+  }
+
+  .categories-track .category-card .category-card-hitarea {
+    grid-template-columns: minmax(150px, 47%) minmax(0, 1fr);
+    min-height: 205px;
+  }
+
+  .categories-track .category-visual {
+    height: 205px;
+  }
+
+  .categories-track .category-card-content {
+    min-height: 205px;
+  }
+}
