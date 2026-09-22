@@ -1220,8 +1220,15 @@ function App() {
             )}
           </div>
 
-          <button className="brand" onClick={goHome}>
-            <img src="/logo-header.webp" alt="Tai Fernandes Moda Íntima" />
+          <button className="brand" type="button" onClick={goHome} aria-label="Voltar para a página inicial">
+            <img
+              src="/logo-header.webp"
+              alt="Tai Fernandes Moda Íntima"
+              width="480"
+              height="164"
+              decoding="async"
+              fetchPriority="high"
+            />
           </button>
 
           <nav className={`mobile-drawer ${menuOpen ? 'open' : ''}`}>
@@ -1284,13 +1291,19 @@ function App() {
               className="header-action favorites-action"
               type="button"
               onClick={() => setFavoritesOpen(true)}
+              aria-label={favorites.length ? `Abrir favoritos (${favorites.length})` : 'Abrir favoritos'}
             >
               <Icon name="heart" size={22} />
               <small>Favoritos</small>
               {favorites.length > 0 && <b>{favorites.length}</b>}
             </button>
 
-            <button className={`header-action bag-action ${cartPulse ? 'pulse' : ''}`} onClick={() => setCartOpen(true)}>
+            <button
+              className={`header-action bag-action ${cartPulse ? 'pulse' : ''}`}
+              type="button"
+              onClick={() => setCartOpen(true)}
+              aria-label={cartCount ? `Abrir sacola (${cartCount} itens)` : 'Abrir sacola'}
+            >
               <Icon name="bag" size={23} />
               <small>Sacola</small>
               <b>{cartCount}</b>
@@ -1450,7 +1463,13 @@ function App() {
           </div>
 
           <div className="hero-visual">
-            <img src="/hero-modelo.webp" alt="Modelo usando lingerie em tons rosé" decoding="async" fetchPriority="high" />
+            <img
+              src="/hero-modelo.webp"
+              alt="Modelo usando lingerie em tons rosé"
+              width="1280"
+              height="720"
+              decoding="async"
+            />
             <div className="hero-image-shade" />
             <p className="hero-quote">
               Beleza
@@ -1536,9 +1555,6 @@ function App() {
               <p className="eyebrow">ACABOU DE CHEGAR</p>
               <h2>Novidades da loja</h2>
             </div>
-            <p>
-              Os últimos produtos adicionados ao catálogo aparecem aqui automaticamente.
-            </p>
           </div>
 
           <div className="new-arrivals-grid">

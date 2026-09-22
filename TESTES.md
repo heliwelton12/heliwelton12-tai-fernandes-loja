@@ -298,3 +298,53 @@ Uma nova versão só deve ser marcada como concluída quando:
 2. o cenário principal tiver sido testado;
 3. o resultado estiver registrado neste arquivo;
 4. não houver regressão conhecida bloqueando o fluxo principal.
+
+## V47 — auditoria pré-publicação
+
+### Diagnóstico concluído
+- ✅ baseline mobile: Performance 78, FCP 3,0 s, LCP 4,5 s, TBT 0 ms, CLS 0, SI 3,1 s;
+- ✅ baseline desktop: Performance 98, Acessibilidade 96, Práticas recomendadas 92, SEO 100;
+- ✅ LCP mobile identificado como logo;
+- ✅ erro 400 de `categories` relacionado ao caminho de compatibilidade identificado;
+- ✅ imagens grandes/cache curto do Supabase identificados;
+- ✅ contraste e nomes acessíveis identificados;
+- ✅ problema de fallback HTML em `ai-catalog.json` identificado.
+
+### Alterações preparadas
+- ✅ assets críticos otimizados;
+- ✅ preload responsivo;
+- ✅ upload de imagens otimizado;
+- ✅ cache atualizado;
+- ✅ acessibilidade revisada;
+- ✅ ARD/ai-catalog adicionados;
+- ✅ documentação criada.
+
+### Validação obrigatória após instalar a V47
+- ⏳ executar `supabase/v47_schema_reconciliation.sql`;
+- ⏳ `npm install`/`npm ci`;
+- ⏳ `npm run build`;
+- ⏳ `npm run preview -- --host`;
+- ⏳ testar upload de foto JPG/PNG e confirmar que a mídia publicada é WebP quando suportado;
+- ⏳ testar capa de categoria;
+- ⏳ conferir home no PC e celular;
+- ⏳ conferir `/admin`;
+- ⏳ confirmar ausência de 400 em `categories`;
+- ⏳ publicar no ambiente temporário;
+- ⏳ repetir Lighthouse mobile/desktop e registrar resultados.
+
+
+## V47.2 — regressão de sessão do painel
+
+- 🔄 abrir `/admin` com sessão administrativa válida;
+- 🔄 alternar para outra aba/janela e retornar ao painel diversas vezes;
+- 🔄 deixar a aba em segundo plano por alguns minutos e retornar;
+- 🔄 confirmar que **“Verificando acesso administrativo…”** desaparece normalmente e não fica presa;
+- 🔄 confirmar que não é necessário usar `F5` para recuperar o painel;
+- 🔄 confirmar ausência de erros vermelhos de autenticação no Console;
+- 🔄 confirmar ausência dos avisos de preload de `logo-header.webp`/`hero-modelo.webp` em `/admin` após recarregar a rota;
+- ⏳ após aprovação manual, executar `npm run build` e `npm audit`.
+
+### V47.3 — seção Novidades
+- [ ] Confirmar que a seção mantém “ACABOU DE CHEGAR” e “Novidades da loja”.
+- [ ] Confirmar que a frase explicativa sobre produtos adicionados automaticamente não aparece mais.
+- [ ] Conferir alinhamento da seção em desktop e mobile após a remoção.

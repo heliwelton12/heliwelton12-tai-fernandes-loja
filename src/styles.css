@@ -245,7 +245,7 @@ a {
 
 .eyebrow {
   margin: 0 0 16px;
-  color: var(--rose);
+  color: var(--rose-dark);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.22em;
@@ -818,7 +818,7 @@ a {
   gap: 8px;
   padding: 0 18px;
   border-radius: 999px;
-  background: #25d366;
+  background: #0f7a3d;
   color: white;
   box-shadow: 0 14px 28px rgba(37, 211, 102, 0.28);
   font-size: 12px;
@@ -2004,7 +2004,7 @@ a {
 
 .new-arrivals-heading {
   display: grid;
-  grid-template-columns: 1fr minmax(280px, 440px);
+  grid-template-columns: 1fr;
   gap: 36px;
   align-items: end;
   margin-bottom: 30px;
@@ -2018,11 +2018,6 @@ a {
   letter-spacing: -0.04em;
 }
 
-.new-arrivals-heading > p {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.7;
-}
 
 .new-arrivals-grid {
   display: grid;
@@ -2464,7 +2459,7 @@ a {
 .search-section-title {
   display: block;
   padding: 5px 8px 8px;
-  color: #a26c7c;
+  color: var(--rose-dark);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.12em;

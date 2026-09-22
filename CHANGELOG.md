@@ -1,4 +1,33 @@
-# Changelog — Tai Fernandes Moda Íntima
+# Changelog
+
+## V47.2 — estabilidade da sessão administrativa
+
+- corrigida condição em que `/admin` podia ficar preso em **“Verificando acesso administrativo…”** após trocar de aba e retornar;
+- eventos de renovação de token do Supabase deixam de ativar indevidamente a tela de verificação;
+- verificação `is_admin()` passa a controlar sozinha o estado `adminChecking`;
+- respostas assíncronas antigas de sessão/permissão passam a ser ignoradas após desmontagem ou troca de usuário;
+- preload de logo/hero passa a existir somente na vitrine `/`, removendo downloads/avisos desnecessários no painel e na página de privacidade;
+- adicionado teste de regressão específico para troca de abas no painel administrativo.
+
+**Status:** correção preparada em 22/09/2026; aguardando teste manual local antes de build/audit.
+
+## V47 — auditoria pré-publicação, performance e acessibilidade
+
+- baseline Lighthouse mobile/desktop documentado;
+- logo e hero otimizados;
+- preload responsivo de imagens críticas;
+- dimensões intrínsecas em logo/hero;
+- contraste e nomes acessíveis revisados;
+- upload de imagens passa a otimizar para WebP quando suportado;
+- cache de novos uploads aumentado para 1 ano em caminhos únicos;
+- assets antigos não utilizados removidos;
+- manifestos ARD/ai-catalog válidos adicionados;
+- `llms.txt` ajustado;
+- headers de cache/CORS atualizados;
+- migração de reconciliação do schema adicionada;
+- documentação de auditoria, histórico de falhas, Lighthouse e gate da v1.0.0 criada.
+
+ — Tai Fernandes Moda Íntima
 
 ## V46 — Acabamento final de experiência
 
@@ -406,3 +435,12 @@ Este arquivo registra as mudanças relevantes do projeto. As versões antigas fo
 ## Versões sem registro individual confiável
 
 As versões **V6, V8 e V9** existiram como iterações intermediárias, mas não há descrição individual preservada suficiente para registrar alterações específicas sem risco de inventar informações. Suas mudanças estão consolidadas nas versões documentadas seguintes.
+
+### V47.1 — correção visual do logotipo
+- Corrigida perda de transparência de `public/logo-header.webp` causada pela primeira etapa de otimização da V47.
+- Logotipo reprocessado em WebP RGBA, 480 × 164 px, preservando o fundo transparente.
+- Ocorrência registrada em `docs/HISTORICO-PROBLEMAS-CORRECOES.md` como parte da auditoria pré-publicação.
+
+### V47.3 — limpeza da seção Novidades
+- Removida da vitrine a frase “Os últimos produtos adicionados ao catálogo aparecem aqui automaticamente.” por ser uma explicação interna desnecessária para o cliente final.
+- Ajustado o cabeçalho da seção para uma única coluna, evitando reservar espaço vazio após a remoção do texto.

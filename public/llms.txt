@@ -17,12 +17,12 @@ Site oficial da Tai Fernandes Moda Íntima, com catálogo online e pedidos final
 - Informações públicas da loja podem ser atualizadas pelo painel administrativo.
 
 ## Páginas
-- Página inicial: https://taifernandes-modaintima.netlify.app/
-- Política de privacidade: https://taifernandes-modaintima.netlify.app/privacidade
-- Sitemap: https://taifernandes-modaintima.netlify.app/sitemap.xml
+- [Página inicial](https://taifernandes-modaintima.netlify.app/)
+- [Política de privacidade](https://taifernandes-modaintima.netlify.app/privacidade)
+- [Sitemap](https://taifernandes-modaintima.netlify.app/sitemap.xml)
 
 ## Contato público
-- Instagram: https://www.instagram.com/tf.modaintima2
+- [Instagram](https://www.instagram.com/tf.modaintima2)
 - WhatsApp: +55 75 98153-7356
 
 Observação: as URLs acima são temporárias e serão atualizadas para o domínio definitivo no lançamento da versão 1.0.0.

@@ -26,6 +26,46 @@ const ALLOWED_MEDIA_TYPES = new Set([
   'video/webm',
 ])
 const ALLOWED_CATEGORY_COVER_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
+const STORAGE_CACHE_CONTROL = '31536000'
+const IMAGE_UPLOAD_MAX_DIMENSION = 1600
+const IMAGE_UPLOAD_QUALITY = 0.84
+
+async function optimizeImageFile(file, maxDimension = IMAGE_UPLOAD_MAX_DIMENSION) {
+  if (!file?.type?.startsWith('image/')) return file
+  if (typeof window === 'undefined' || typeof window.createImageBitmap !== 'function') return file
+
+  let bitmap
+  try {
+    bitmap = await window.createImageBitmap(file)
+    const scale = Math.min(1, maxDimension / bitmap.width, maxDimension / bitmap.height)
+    const width = Math.max(1, Math.round(bitmap.width * scale))
+    const height = Math.max(1, Math.round(bitmap.height * scale))
+
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    const context = canvas.getContext('2d', { alpha: false })
+    if (!context) return file
+
+    context.drawImage(bitmap, 0, 0, width, height)
+    const blob = await new Promise((resolve) =>
+      canvas.toBlob(resolve, 'image/webp', IMAGE_UPLOAD_QUALITY)
+    )
+
+    if (!blob) return file
+    if (blob.size >= file.size && file.type === 'image/webp' && scale === 1) return file
+
+    const baseName = file.name.replace(/\.[^.]+$/, '') || 'imagem'
+    return new File([blob], `${baseName}.webp`, {
+      type: 'image/webp',
+      lastModified: file.lastModified || Date.now(),
+    })
+  } catch {
+    return file
+  } finally {
+    if (bitmap?.close) bitmap.close()
+  }
+}
 
 function slugify(value) {
   return value
@@ -158,33 +198,89 @@ export default function AdminApp() {
   useEffect(() => {
     if (!supabaseConfigured || !supabase) {
       setAuthLoading(false)
-      return
+      return undefined
     }
 
-    supabase.auth.getSession().then(({ data }) => {
-      const nextSession = data.session || null
-      setAdminChecking(Boolean(nextSession?.user?.id))
-      setSession(nextSession)
-      setAuthLoading(false)
-    })
+    let active = true
+
+    async function restoreSession() {
+      try {
+        const { data, error } = await supabase.auth.getSession()
+        if (!active) return
+
+        if (error) {
+          console.error('Falha ao restaurar sessão administrativa:', error)
+        }
+
+        setSession(data?.session || null)
+      } catch (error) {
+        if (!active) return
+        console.error('Falha inesperada ao restaurar sessão administrativa:', error)
+        setSession(null)
+      } finally {
+        if (active) setAuthLoading(false)
+      }
+    }
+
+    restoreSession()
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setAdminChecking(Boolean(nextSession?.user?.id))
+      if (!active) return
+      // A troca/renovação do token não deve forçar a tela de verificação.
+      // A permissão é reavaliada somente quando o usuário autenticado muda.
       setSession(nextSession)
     })
 
-    return () => listener.subscription.unsubscribe()
+    return () => {
+      active = false
+      listener.subscription.unsubscribe()
+    }
   }, [])
 
   useEffect(() => {
-    if (!session?.user?.id) {
+    const userId = session?.user?.id
+
+    if (!userId) {
       setAdminAllowed(false)
       setAdminProfile(null)
       setAdminChecking(false)
-      return
+      return undefined
     }
 
-    checkAdmin(session.user.id)
+    let active = true
+
+    async function verifyAdminPermission() {
+      setAdminChecking(true)
+
+      try {
+        const { data, error } = await supabase.rpc('is_admin')
+        if (!active) return
+
+        if (error) {
+          console.error('Falha ao verificar permissão administrativa:', error)
+          setAdminAllowed(false)
+          setAdminProfile(null)
+          return
+        }
+
+        const allowed = data === true
+        setAdminAllowed(allowed)
+        setAdminProfile(allowed ? { user_id: userId } : null)
+      } catch (error) {
+        if (!active) return
+        console.error('Falha inesperada ao verificar permissão administrativa:', error)
+        setAdminAllowed(false)
+        setAdminProfile(null)
+      } finally {
+        if (active) setAdminChecking(false)
+      }
+    }
+
+    verifyAdminPermission()
+
+    return () => {
+      active = false
+    }
   }, [session?.user?.id])
 
   useEffect(() => {
@@ -272,27 +368,6 @@ export default function AdminApp() {
       window.requestAnimationFrame(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' })
       })
-    }
-  }
-
-  async function checkAdmin(userId) {
-    setAdminChecking(true)
-
-    try {
-      const { data, error } = await supabase.rpc('is_admin')
-
-      if (error) {
-        console.error('Falha ao verificar permissão administrativa:', error)
-        setAdminAllowed(false)
-        setAdminProfile(null)
-        return
-      }
-
-      const allowed = data === true
-      setAdminAllowed(allowed)
-      setAdminProfile(allowed ? { user_id: userId } : null)
-    } finally {
-      setAdminChecking(false)
     }
   }
 
@@ -645,13 +720,13 @@ export default function AdminApp() {
     let newStoragePath = ''
 
     try {
-      const file = draft.file
+      const file = await optimizeImageFile(draft.file, 1400)
       newStoragePath = `categories/${category.slug}/${Date.now()}-${fileNameSafe(file.name)}`
 
       const { error: uploadError } = await supabase.storage
         .from('product-media')
         .upload(newStoragePath, file, {
-          cacheControl: '3600',
+          cacheControl: STORAGE_CACHE_CONTROL,
           upsert: false,
           contentType: file.type,
         })
@@ -935,8 +1010,9 @@ export default function AdminApp() {
     const currentImageCount = media.filter((item) => item.media_type === 'image').length
 
     for (let index = 0; index < files.length; index += 1) {
-      const file = files[index]
-      const mediaType = file.type.startsWith('video/') ? 'video' : 'image'
+      const selectedFile = files[index]
+      const mediaType = selectedFile.type.startsWith('video/') ? 'video' : 'image'
+      const file = mediaType === 'image' ? await optimizeImageFile(selectedFile) : selectedFile
       const path = `products/${productId}/${Date.now()}-${index}-${fileNameSafe(file.name)}`
 
       if (file.size > 6 * 1024 * 1024) {
@@ -948,7 +1024,7 @@ export default function AdminApp() {
       const { error: uploadError } = await supabase.storage
         .from('product-media')
         .upload(path, file, {
-          cacheControl: '3600',
+          cacheControl: STORAGE_CACHE_CONTROL,
           upsert: false,
           contentType: file.type,
         })
@@ -1589,7 +1665,7 @@ export default function AdminApp() {
 
               <label className="admin-upload">
                 <strong>Selecionar fotos e vídeos</strong>
-                <span>JPG, PNG, WebP · MP4 ou WebM</span>
+                <span>JPG, PNG e WebP são otimizadas automaticamente · MP4 ou WebM</span>
                 <input
                   type="file"
                   multiple
