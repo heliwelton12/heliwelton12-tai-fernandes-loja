@@ -129,6 +129,7 @@ export default function AdminApp() {
   const [categoryCoverMessage, setCategoryCoverMessage] = useState('')
   const [newCategoryName, setNewCategoryName] = useState('')
   const [categoryCreating, setCategoryCreating] = useState(false)
+  const [categoryReordering, setCategoryReordering] = useState(false)
 
   const editing = Boolean(form.id)
   const selectedFormCategory = categories.find((category) => category.id === form.categoryId)
@@ -237,7 +238,7 @@ export default function AdminApp() {
   function toggleCatalogCategory(categoryName) {
     setExpandedCategories((current) => ({
       ...current,
-      [categoryName]: current[categoryName] === false,
+      [categoryName]: !current[categoryName],
     }))
   }
 
@@ -346,6 +347,50 @@ export default function AdminApp() {
       setCategoryCoverMessage(`Não foi possível adicionar a categoria: ${error.message}`)
     } finally {
       setCategoryCreating(false)
+    }
+  }
+
+  async function moveCategory(categoryId, direction) {
+    if (categoryReordering) return
+
+    const ordered = [...categories].sort(
+      (a, b) => (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0)
+    )
+    const currentIndex = ordered.findIndex((category) => category.id === categoryId)
+    const targetIndex = currentIndex + direction
+
+    if (currentIndex < 0 || targetIndex < 0 || targetIndex >= ordered.length) return
+
+    const currentCategory = ordered[currentIndex]
+    const targetCategory = ordered[targetIndex]
+    const currentOrder = Number(currentCategory.sort_order) || currentIndex
+    const targetOrder = Number(targetCategory.sort_order) || targetIndex
+
+    setCategoryReordering(true)
+    setCategoryCoverMessage('')
+
+    try {
+      const { error: firstError } = await supabase
+        .from('categories')
+        .update({ sort_order: targetOrder })
+        .eq('id', currentCategory.id)
+
+      if (firstError) throw firstError
+
+      const { error: secondError } = await supabase
+        .from('categories')
+        .update({ sort_order: currentOrder })
+        .eq('id', targetCategory.id)
+
+      if (secondError) throw secondError
+
+      await loadCategories()
+      setCategoryCoverMessage(`Ordem atualizada: ${currentCategory.name} foi movida ${direction < 0 ? 'para a esquerda' : 'para a direita'}.`)
+    } catch (error) {
+      setCategoryCoverMessage(`Não foi possível alterar a ordem: ${error.message}`)
+      await loadCategories()
+    } finally {
+      setCategoryReordering(false)
     }
   }
 
@@ -1295,7 +1340,7 @@ export default function AdminApp() {
           {groupedProducts.length ? (
             <div className="admin-category-groups">
               {groupedProducts.map((group) => {
-                const expanded = expandedCategories[group.name] !== false
+                const expanded = expandedCategories[group.name] === true
 
                 return (
                   <section className="admin-category-group" key={group.name}>
@@ -1568,7 +1613,7 @@ export default function AdminApp() {
                 <p className="admin-kicker">CAPAS DAS CATEGORIAS</p>
                 <h3>Imagens da página inicial</h3>
                 <p>
-                  Adicione novas categorias e troque a capa de qualquer uma delas sem editar o código.
+                  Adicione categorias, troque as capas e organize a ordem em que elas aparecem na loja.
                 </p>
               </div>
             </div>
@@ -1593,7 +1638,7 @@ export default function AdminApp() {
             </form>
 
             <div className="admin-category-cover-grid">
-              {categories.map((category) => {
+              {categories.map((category, categoryIndex) => {
                 const draft = categoryCoverDrafts[category.id]
                 const preview = draft?.previewUrl || category.cover_url || ''
                 const savingCover = Boolean(categoryCoverSaving[category.id])
@@ -1618,6 +1663,26 @@ export default function AdminApp() {
                               ? 'Capa personalizada ativa.'
                               : 'Usando a capa padrão do site.'}
                         </small>
+                      </div>
+
+                      <div className="admin-category-order" aria-label={`Ordenar ${category.name}`}>
+                        <button
+                          type="button"
+                          disabled={categoryIndex === 0 || categoryReordering}
+                          onClick={() => moveCategory(category.id, -1)}
+                          title="Mover para a esquerda"
+                        >
+                          ← <span>Antes</span>
+                        </button>
+                        <small>Posição {categoryIndex + 1}</small>
+                        <button
+                          type="button"
+                          disabled={categoryIndex === categories.length - 1 || categoryReordering}
+                          onClick={() => moveCategory(category.id, 1)}
+                          title="Mover para a direita"
+                        >
+                          <span>Depois</span> →
+                        </button>
                       </div>
 
                       <label className="admin-category-cover-picker">

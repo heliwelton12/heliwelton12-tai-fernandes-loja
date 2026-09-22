@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useCatalogProducts } from './lib/catalogBackend'
 import { supabase, supabaseConfigured } from './lib/supabaseClient'
 import { DEFAULT_STORE_SETTINGS, normalizeWhatsapp, useStoreSettings } from './lib/storeSettings'
@@ -390,6 +390,7 @@ function App() {
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [pajamaAudience, setPajamaAudience] = useState('Todos')
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES)
+  const categoryTrackRef = useRef(null)
 
   const {
     products: catalogProducts,
@@ -653,6 +654,17 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  function scrollCategories(direction) {
+    const track = categoryTrackRef.current
+    if (!track) return
+
+    const amount = Math.max(track.clientWidth * 0.78, 260)
+    track.scrollBy({
+      left: direction * amount,
+      behavior: 'smooth',
+    })
+  }
+
   function openCategory(categoryName) {
     if (categoryName === 'Sex Shop' && localStorage.getItem('tf-adult-confirmed') !== 'true') {
       setPendingAdultCategory(categoryName)
@@ -849,7 +861,6 @@ function App() {
     setToast(`${safeQuantity > 1 ? `${safeQuantity} itens adicionados` : 'Produto adicionado'} à sacola`)
     setCartPulse(true)
     window.setTimeout(() => setCartPulse(false), 520)
-    setCartOpen(true)
   }
 
   function changeQuantity(cartKey, delta) {
@@ -1356,30 +1367,66 @@ function App() {
           <aside className="categories-intro">
             <p className="eyebrow">NOSSAS CATEGORIAS</p>
             <h2>Tudo para o seu bem-estar, em um só lugar.</h2>
+            <p className="categories-intro-copy">
+              Explore cada coleção e encontre o que combina com você.
+            </p>
+            <div className="categories-intro-hint">
+              <span>Deslize para ver mais</span>
+              <Icon name="arrow" size={15} />
+            </div>
           </aside>
 
-          <div className="categories-grid">
-            {categories.map((category) => (
-              <article className={`category-card tone-${category.tone}`} key={category.name}>
-                <div className={`category-visual ${category.image ? 'has-image' : ''}`}>
-                  {category.image ? (
-                    <img src={category.image} alt={category.name} loading="lazy" decoding="async" />
-                  ) : (
-                    <span className="category-monogram">{category.name.slice(0, 2).toUpperCase()}</span>
-                  )}
-                </div>
-                <div className="category-card-content">
-                  <div className="category-title-row">
-                    <h3>{category.name}</h3>
-                    {category.adult && <span className="adult-badge">18+</span>}
-                  </div>
-                  <p>{category.subtitle}</p>
-                  <button onClick={() => openCategory(category.name)}>
-                    Explorar <Icon name="arrow" size={16} />
+          <div className="categories-carousel-shell">
+            <div className="categories-carousel-topline">
+              <span>{categories.length} {categories.length === 1 ? 'categoria' : 'categorias'}</span>
+              <div className="categories-carousel-controls" aria-label="Navegação das categorias">
+                <button
+                  type="button"
+                  aria-label="Categorias anteriores"
+                  onClick={() => scrollCategories(-1)}
+                >
+                  <span aria-hidden="true">←</span>
+                </button>
+                <button
+                  type="button"
+                  aria-label="Próximas categorias"
+                  onClick={() => scrollCategories(1)}
+                >
+                  <span aria-hidden="true">→</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="categories-track" ref={categoryTrackRef}>
+              {categories.map((category) => (
+                <article className={`category-card tone-${category.tone}`} key={category.id || category.name}>
+                  <button
+                    type="button"
+                    className="category-card-hitarea"
+                    onClick={() => openCategory(category.name)}
+                    aria-label={`Abrir categoria ${category.name}`}
+                  >
+                    <div className={`category-visual ${category.image ? 'has-image' : ''}`}>
+                      {category.image ? (
+                        <img src={category.image} alt="" loading="lazy" decoding="async" />
+                      ) : (
+                        <span className="category-monogram">{category.name.slice(0, 2).toUpperCase()}</span>
+                      )}
+                    </div>
+                    <div className="category-card-content">
+                      <div className="category-title-row">
+                        <h3>{category.name}</h3>
+                        {category.adult && <span className="adult-badge">18+</span>}
+                      </div>
+                      <p>{category.subtitle}</p>
+                      <span className="category-explore">
+                        Explorar <Icon name="arrow" size={16} />
+                      </span>
+                    </div>
                   </button>
-                </div>
-              </article>
-            ))}
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -1703,6 +1750,18 @@ function App() {
         <div className="store-toast" role="status" aria-live="polite">
           <Icon name="bag" size={18} />
           <span>{toast}</span>
+          {(toast.includes('adicionado') || toast.includes('adicionados')) && (
+            <button
+              type="button"
+              className="store-toast-action"
+              onClick={() => {
+                setToast('')
+                setCartOpen(true)
+              }}
+            >
+              Ver sacola
+            </button>
+          )}
         </div>
       )}
 

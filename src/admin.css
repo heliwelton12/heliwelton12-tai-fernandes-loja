@@ -1380,3 +1380,50 @@ textarea {
   .admin-add-category { grid-template-columns: 1fr; }
   .admin-add-category button { width: 100%; }
 }
+
+
+/* v35 — ordem das categorias */
+.admin-category-order {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--admin-line);
+  border-radius: 13px;
+  background: #fffafb;
+}
+
+.admin-category-order button {
+  min-height: 36px;
+  border: 1px solid var(--admin-line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--admin-rose-dark, #9f3e59);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-category-order button:hover:not(:disabled) {
+  border-color: #c55774;
+  background: #fff4f7;
+}
+
+.admin-category-order button:disabled {
+  opacity: .38;
+  cursor: not-allowed;
+}
+
+.admin-category-order small {
+  color: var(--admin-muted);
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+@media (max-width: 650px) {
+  .admin-category-order button span {
+    display: none;
+  }
+}
