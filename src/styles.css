@@ -4301,3 +4301,126 @@ a {
     border-radius: 18px;
   }
 }
+
+/* v36 — refinamento visual do carrossel de categorias */
+.categories-section {
+  background: #fffdfd;
+}
+
+.categories-carousel-shell,
+.categories-carousel-topline,
+.categories-track {
+  background: transparent;
+}
+
+/* Remove qualquer faixa/scrollbar visível do carrossel. */
+.categories-track {
+  scrollbar-width: none;
+  scrollbar-color: transparent transparent;
+}
+
+.categories-track::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  background: transparent;
+}
+
+/* Mantém os cards horizontais, mas com uma proporção mais elegante e previsível. */
+.categories-track .category-card {
+  flex-basis: clamp(270px, 25vw, 310px);
+  background: var(--rose-pale);
+}
+
+.categories-track .category-card .category-card-hitarea {
+  display: grid;
+  grid-template-columns: minmax(118px, 43%) minmax(0, 1fr);
+  align-items: stretch;
+  width: 100%;
+  min-height: 220px;
+}
+
+/* A foto ganha respiro e deixa de parecer colada/cortada no topo. */
+.categories-track .category-visual {
+  width: 100%;
+  height: 220px;
+  padding: 8px 0 8px 8px;
+  background: #fffdfd;
+}
+
+.categories-track .category-visual.has-image img {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  object-fit: cover;
+  object-position: center 18%;
+  transform: none;
+  transition: transform .35s ease, filter .35s ease;
+}
+
+.categories-track .category-card:hover .category-visual.has-image img {
+  transform: scale(1.018);
+  filter: saturate(1.02);
+}
+
+.categories-track .category-card-content {
+  min-height: 220px;
+  padding: 20px 18px 18px;
+  justify-content: flex-start;
+}
+
+.categories-track .category-card h3 {
+  font-size: 22px;
+}
+
+.categories-track .category-card p {
+  min-height: 0;
+  margin: 10px 0 16px;
+}
+
+.categories-track .category-explore {
+  margin-top: auto;
+}
+
+@media (max-width: 980px) {
+  .categories-track .category-card {
+    flex-basis: clamp(270px, 48vw, 310px);
+  }
+}
+
+@media (max-width: 680px) {
+  .categories-section {
+    background: #fffdfd;
+  }
+
+  .categories-track {
+    padding-bottom: 8px;
+  }
+
+  .categories-track .category-card {
+    flex: 0 0 min(84vw, 305px);
+  }
+
+  .categories-track .category-card .category-card-hitarea {
+    grid-template-columns: minmax(122px, 45%) minmax(0, 1fr);
+    min-height: 205px;
+  }
+
+  .categories-track .category-visual {
+    height: 205px;
+    padding: 7px 0 7px 7px;
+  }
+
+  .categories-track .category-card-content {
+    min-height: 205px;
+    padding: 17px 15px 16px;
+  }
+
+  .categories-track .category-card h3 {
+    font-size: 21px;
+  }
+
+  .categories-track .category-card p {
+    font-size: 10px;
+    line-height: 1.45;
+  }
+}
