@@ -1,197 +1,180 @@
-# Tai Fernandes — Moda Íntima (v3)
+# Tai Fernandes — Moda Íntima
 
-Versão atualizada seguindo mais de perto a referência escolhida.
+Loja virtual responsiva para **Tai Fernandes Moda Íntima**, com catálogo administrável, favoritos, sacola, checkout e finalização de pedido pelo WhatsApp.
 
-## Alterações desta versão
+> **Estado atual:** V40 — revisão da sacola e do fluxo de compra no celular concluída e testada manualmente. O projeto está em fase de refinamento local antes da publicação definitiva.
 
-- hero com modelo em foto, no estilo aprovado;
-- retirada dos emojis da interface;
-- ícones vetoriais em SVG;
-- cabeçalho e navegação mais próximos da referência;
-- produtos fictícios elegantes para apresentação;
-- busca funcional nos produtos demonstrativos;
-- seção já preparada para substituir os itens fictícios pelos produtos reais;
-- botão de cada produto abre o WhatsApp mencionando o item escolhido;
-- estrutura mobile mantida.
+## Tecnologias
 
-## Produtos reais
+- React 19
+- Vite 7
+- JavaScript / JSX
+- CSS responsivo
+- Supabase Database
+- Supabase Auth
+- Supabase Storage
+- WhatsApp para finalização dos pedidos
+- Git / GitHub para versionamento
+- Netlify como hospedagem atual
+- Cloudflare Pages planejado para a publicação definitiva
 
-No arquivo `src/App.jsx`, existe o array:
+## Funcionalidades principais
 
-`const realProducts = []`
+### Loja pública
 
-Enquanto ele estiver vazio, o site usa `mockProducts`.
+- página inicial responsiva;
+- categorias dinâmicas;
+- carrossel horizontal de categorias;
+- busca global de produtos e categorias;
+- página individual de cada categoria;
+- seção de novidades;
+- galeria de fotos e vídeos no modal de produto;
+- seleção de tamanho e cor quando cadastrados;
+- controle de quantidade;
+- favoritos persistidos no navegador;
+- dados do cliente persistidos localmente;
+- sacola persistida no navegador;
+- checkout com Pix, Cartão e Dinheiro;
+- retirada ou entrega conforme configuração da loja;
+- troco para pagamentos em dinheiro;
+- finalização do pedido pelo WhatsApp;
+- confirmação 18+ para a categoria Sex Shop;
+- indicação de produto esgotado;
+- produtos demonstrativos ocultos automaticamente em produção;
+- acesso rápido ao painel quando uma administradora já está autenticada.
 
-Quando os produtos reais chegarem, podemos:
-1. cadastrar manualmente;
-2. ou conectar esse conteúdo ao Supabase e painel administrativo.
+### Painel administrativo
 
+Disponível em `/admin`.
 
-## v4 — identidade no cabeçalho
-
-- removido o bloco quadrado rosa da logomarca;
-- criada versão transparente rosé da identidade;
-- busca à esquerda, marca centralizada e ações à direita, seguindo a referência aprovada;
-- rodapé também atualizado para a identidade limpa.
-
-
-## v5 — logomarca oficial
-
-- a imagem enviada pela usuária foi aplicada exatamente como recebida;
-- nenhuma alteração foi feita no desenho, texto, cor ou composição da logomarca;
-- apenas o tamanho de exibição no cabeçalho e rodapé é controlado pelo CSS, preservando a proporção original.
-
-
-## v7 — categoria Lingeries
-
-Foram cadastrados os 4 primeiros produtos reais:
-
-- Lingerie 01 — R$ 40,00
-- Lingerie 02 — R$ 40,00
-- Lingerie 03 — R$ 26,00
-- Lingerie 04 — R$ 40,00
-
-As fotos reais agora aparecem nos cards de produto. A categoria Lingeries também utiliza uma das fotos reais como destaque. Tamanhos e cores continuam em aberto até serem informados.
-
-
-## v10 — sacola e finalização
-
-- removidas informações repetidas do hero e da faixa abaixo;
-- topo simplificado;
-- sacola abre em painel lateral;
-- alterar quantidade e remover produto;
-- escolha de Pix, cartão ou dinheiro;
-- opção de troco para pagamento em dinheiro;
-- retirada ou entrega;
-- endereço e referência para entrega;
-- observações do pedido;
-- mensagem completa montada automaticamente para o WhatsApp;
-- carrinho salvo no navegador para não desaparecer ao atualizar a página.
-
-
-## v11 — categorias independentes e cabeçalho compacto
-
-- cada categoria agora abre em um espaço próprio;
-- a home não joga mais todos os produtos para baixo;
-- Lingeries e Sex Shop mostram apenas seus respectivos produtos;
-- categorias sem produtos exibem um aviso próprio;
-- Pijamas já mostra as futuras divisões Feminino, Masculino e Infantil;
-- o cabeçalho continua visível durante a rolagem;
-- depois de rolar a página, ele fica menor para ocupar menos espaço.
-
-
-## v12 — novidades, rodapé premium e header fixo
-
-- seção "Novidades da loja" na página inicial;
-- os últimos 4 produtos cadastrados aparecem automaticamente como novidades;
-- rodapé premium com navegação, atendimento, informações, pagamentos e aviso 18+;
-- cabeçalho continua visível durante a rolagem e reduz de tamanho;
-- corrigido o `overflow` do contêiner principal para não quebrar o comportamento sticky do cabeçalho.
-
-
-## v13 — busca global funcional e pequenos refinamentos
-
-- busca do cabeçalho funciona em toda a loja;
-- busca por nome do produto, categoria e preço;
-- sugestões aparecem enquanto a cliente digita;
-- cada resultado mostra foto, categoria, nome e preço;
-- clicar no produto abre o modal de detalhes;
-- clicar em uma categoria abre diretamente o espaço daquela categoria;
-- tecla Enter abre o primeiro produto encontrado;
-- tecla Esc fecha os resultados;
-- botão para limpar a busca;
-- botão principal "Ver produtos" agora leva para as categorias;
-- "Ofertas" foi substituído por "Novidades", pois ainda não há promoções reais cadastradas.
-
-
-## v14 — correção visual da busca
-
-- corrigida a seta das categorias nos resultados da busca;
-- a seta agora fica alinhada à direita e não sobrepõe o nome;
-- removido o botão X nativo do navegador para não aparecer duplicado;
-- foco do campo de busca ficou mais visível e refinado;
-- ajuste mantido também para celular.
-
-
-## v15 — galeria, vídeo, quantidade, favoritos e minha conta
-
-- modal Espiar preparado para várias fotos;
-- suporte a vídeo do produto com player dentro do modal;
-- miniaturas para alternar entre fotos e vídeo;
-- quantidade ajustável no modal;
-- total do produto atualizado de acordo com a quantidade;
-- adicionar à sacola respeita a quantidade escolhida;
-- Favoritos agora funcionam e ficam salvos no navegador;
-- painel de Favoritos com acesso rápido ao produto;
-- Minha conta agora permite salvar nome e telefone neste aparelho;
-- nome salvo é reutilizado para agilizar a finalização do pedido;
-- estrutura de mídia aceita `media`, `images` e `video`, pronta para o futuro painel administrativo.
-
-
-## v16 — mobile, 18+, imagens e acabamento de loja
-
-- revisão completa para celular: cabeçalho, hero, categorias, cards, busca, modal, favoritos, conta, sacola e checkout;
-- confirmação 18+ antes do primeiro acesso ao Sex Shop, salva no navegador;
-- categorias vazias ganharam estado premium com atalhos;
-- imagens do hero e produtos foram convertidas para WebP otimizado, mantendo os originais no projeto;
-- lazy loading e decoding assíncrono em imagens não críticas;
-- feedback visual ao adicionar/remover produtos;
-- animação no contador da sacola;
-- confirmação antes de remover item ou esvaziar a sacola;
-- botão Continuar comprando e Esvaziar sacola;
-- botão Voltar ao topo no celular;
-- botão de finalizar pedido fica mais acessível no checkout mobile.
-
-
-## v17 — seta voltar ao topo
-
-- o botão circular “voltar ao topo” agora aparece também no computador;
-- continua aparecendo somente depois que a pessoa rola a página;
-- fica acima do botão do WhatsApp, sem sobreposição;
-- usa o mesmo estilo de ícones do restante da loja;
-- possui animação suave no hover e rolagem suave até o início.
-
-
-## v18 — produtos fictícios nas categorias pendentes
-
-- Conjuntos recebeu 4 produtos demonstrativos;
-- Camisolas recebeu 4 produtos demonstrativos;
-- Pijamas recebeu 4 produtos demonstrativos;
-- produtos fictícios são identificados com a etiqueta “Demonstração”;
-- aviso claro nas categorias informa que os itens serão substituídos depois;
-- Pijamas agora possui filtro funcional: Todos, Feminino, Masculino e Infantil;
-- produtos reais de Lingeries e Sex Shop continuam separados e sem alteração;
-- seção Novidades continua mostrando apenas produtos reais;
-- busca global também encontra os produtos demonstrativos, permitindo testar o fluxo completo.
-
-
-## v19 — início do backend com Supabase
-
-- a loja agora pode carregar o catálogo diretamente do Supabase;
-- sem `.env.local`, continua usando o catálogo local atual;
-- painel administrativo em `/admin`;
-- autenticação por e-mail/senha para administradora;
+- autenticação com Supabase Auth;
+- verificação de permissão administrativa por `public.is_admin()`;
 - cadastro, edição e exclusão de produtos;
-- fotos múltiplas e vídeo;
-- foto de capa;
+- status Disponível, Esgotado e Oculto;
+- marcação de Novidade e Demonstração;
+- múltiplas fotos e vídeo;
+- escolha da foto de capa;
 - tamanhos e cores;
-- status Disponível / Esgotado / Oculto;
-- Novidade;
-- Produto demonstrativo;
-- RLS e permissões de administrador;
-- Storage `product-media`;
-- seed com o catálogo atual para começar sem perder o trabalho feito;
-- produtos marcados como Esgotado ficam visíveis na loja, mas não podem ser adicionados à sacola.
+- público de Pijamas;
+- catálogo agrupado por categoria;
+- categorias do catálogo fechadas por padrão;
+- busca e filtro de produtos;
+- criação de categorias;
+- capa personalizada das categorias;
+- ordenação das categorias;
+- configurações da loja, atendimento, pagamentos, retirada, entrega e rodapé.
 
-Leia `SETUP_SUPABASE.md` para conectar o projeto.
+## Estrutura principal
 
+```text
+src/
+├── App.jsx                  # Loja pública
+├── AdminApp.jsx             # Painel administrativo
+├── main.jsx                 # Entrada e seleção / ou /admin
+├── styles.css               # Estilos da loja
+├── admin.css                # Estilos do painel
+└── lib/
+    ├── catalogBackend.js    # Leitura do catálogo no Supabase
+    ├── storeSettings.js     # Configurações dinâmicas da loja
+    └── supabaseClient.js    # Cliente Supabase
 
-## v20 — prévia imediata de fotos e vídeos no painel
+supabase/
+├── schema.sql
+├── seed.sql
+├── store_settings.sql
+├── category_covers.sql
+└── v25_admin_display_name.sql  # histórico; não é dependência do painel atual
 
-- ao escolher uma foto, ela aparece imediatamente na mesma galeria das mídias já salvas;
-- vídeos selecionados também ganham pré-visualização;
-- nova mídia recebe etiqueta “Nova foto” ou “Novo vídeo”;
-- antes de salvar, o painel informa que a mídia ainda será enviada;
-- é possível remover um arquivo da seleção antes do upload;
-- selecionar mais arquivos acrescenta à seleção em vez de apagar os anteriores;
-- depois de “Salvar alterações”, a mídia é enviada ao Supabase Storage e passa a ser uma mídia normal do produto.
+docs/
+├── ARQUITETURA.md
+├── BANCO-DE-DADOS.md
+├── PAINEL-ADMIN.md
+├── FLUXO-DE-COMPRA.md
+└── DEPLOY.md
+```
+
+## Executar localmente
+
+### 1. Instalar dependências
+
+```bash
+npm install
+```
+
+### 2. Criar `.env.local`
+
+Use `.env.example` como referência e informe somente as chaves públicas do frontend:
+
+```env
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_PUBLISHABLE_KEY=...
+```
+
+Nunca coloque `service_role`, senha do banco ou qualquer segredo administrativo no frontend.
+
+### 3. Iniciar o desenvolvimento
+
+```bash
+npm run dev -- --host
+```
+
+O `--host` permite testar o projeto em um celular conectado à mesma rede do computador.
+
+### 4. Testar o build de produção localmente
+
+```bash
+npm run build
+npm run preview -- --host
+```
+
+## Variáveis de ambiente
+
+| Variável | Uso |
+|---|---|
+| `VITE_SUPABASE_URL` | URL pública do projeto Supabase |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | chave pública usada pelo frontend |
+| `VITE_SHOW_DEMO_PRODUCTS` | opcional; quando `true`, permite exibir produtos demonstrativos em build de produção |
+
+## Persistência local do cliente
+
+O navegador utiliza `localStorage` para dados que não precisam de conta:
+
+| Chave | Conteúdo |
+|---|---|
+| `tf-cart` | produtos da sacola |
+| `tf-favorites` | IDs dos favoritos |
+| `tf-profile` | nome e WhatsApp salvos em “Meus dados” |
+| `tf-adult-confirmed` | confirmação 18+ para Sex Shop |
+
+## Documentação
+
+- [CHANGELOG.md](CHANGELOG.md) — histórico das versões.
+- [TESTES.md](TESTES.md) — testes executados, pendências e regressão final.
+- [docs/ARQUITETURA.md](docs/ARQUITETURA.md) — visão técnica do sistema.
+- [docs/BANCO-DE-DADOS.md](docs/BANCO-DE-DADOS.md) — Supabase, tabelas, RLS e Storage.
+- [docs/PAINEL-ADMIN.md](docs/PAINEL-ADMIN.md) — funcionamento do painel.
+- [docs/FLUXO-DE-COMPRA.md](docs/FLUXO-DE-COMPRA.md) — jornada da cliente até o WhatsApp.
+- [docs/DEPLOY.md](docs/DEPLOY.md) — desenvolvimento local e publicação.
+
+## Regra de desenvolvimento atual
+
+Enquanto a revisão final estiver em andamento:
+
+1. alterar o código localmente;
+2. testar no computador e no celular;
+3. registrar a mudança no `CHANGELOG.md`;
+4. registrar o teste no `TESTES.md`;
+5. fazer commit local quando a etapa estiver aprovada;
+6. **não fazer `git push` a cada ajuste**;
+7. publicar somente depois da revisão geral e do build de produção aprovado.
+
+## Próximas etapas
+
+1. V41 — revisão do painel administrativo no celular;
+2. funções finais do painel;
+3. SEO, favicon, Open Graph, sitemap e robots;
+4. segurança, 404 e revisão geral de links;
+5. testes finais e PageSpeed;
+6. build de produção local;
+7. primeira versão estável `v1.0.0`;
+8. publicação definitiva no Cloudflare Pages.
