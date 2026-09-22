@@ -1,6 +1,83 @@
 # Changelog — Tai Fernandes Moda Íntima
 
+## V46 — Acabamento final de experiência
+
+- rodapé simplificado para remover navegação, pagamentos e avisos repetidos;
+- rodapé passa a concentrar apenas identidade, atendimento, links úteis e formas de pagamento;
+- adicionado acesso direto a **Meus dados** no rodapé;
+- adicionar um produto à sacola deixa de fechar automaticamente o modal **Espiar** e a compra rápida;
+- após adicionar, quantidade do modal volta para 1, mantendo tamanho/cor selecionados para facilitar um novo item/variação;
+- botões de compra exibem feedback temporário `✓ Adicionado`, mantendo a ação **Ver sacola** no toast;
+- categorias ganham `subtitle` persistido no banco, usado como descrição curta editável;
+- criação de categoria passa a aceitar nome + descrição curta;
+- cada categoria passa a ter ação **Editar categoria** para alterar nome e descrição;
+- exclusão de categoria é permitida somente quando não existem produtos vinculados e nunca permite remover a última categoria da loja;
+- regras especiais de **Sex Shop** e **Pijamas** passam a usar o `slug` estável, evitando perda do 18+ ou das regras de tamanho/público quando o nome visível for editado;
+- criada migração `supabase/v46_category_editing.sql`;
+- `seed.sql` atualizado para preservar as descrições padrão em instalações novas;
+- documentação atualizada junto com a versão.
+
+**Status:** implementada localmente em 22/09/2026; aguardando migração e testes manuais antes da aprovação.
+
 Este arquivo registra as mudanças relevantes do projeto. As versões antigas foram reconstruídas a partir do histórico preservado no projeto e dos pacotes de desenvolvimento existentes. Quando uma versão intermediária não possui registro confiável individual, ela é indicada como tal em vez de ter alterações inventadas.
+
+## V45 — Pré-lançamento, privacidade e acabamento
+
+- criada rota `/privacidade` com Política de Privacidade em linguagem simples;
+- `Meus dados` ganha ação **Limpar nome e WhatsApp** para apagar os dados locais de contato;
+- `tf-profile` deixa de permanecer gravado quando nome e telefone estão vazios;
+- adicionados limites de tamanho aos principais campos de checkout e perfil;
+- criada rota de erro 404 para endereços inexistentes da SPA;
+- criado `public/llms.txt`;
+- adicionados dados estruturados JSON-LD do tipo `Store`;
+- sitemap passa a incluir a página de privacidade;
+- revisados textos alternativos: imagens informativas mantêm `alt` descritivo e miniaturas/capas redundantes continuam decorativas quando o botão já possui nome acessível;
+- consultas públicas de `store_settings` passam a selecionar somente os campos necessários em vez de `select('*')`;
+- adicionados headers de segurança preparados para Cloudflare Pages em `public/_headers`, incluindo CSP, proteção contra framing, `nosniff` e política de referência;
+- adicionadas animações sutis sem biblioteca externa, preservando o layout aprovado;
+- incluído suporte completo a `prefers-reduced-motion`;
+- auditoria do histórico remoto atual do Git revisou os 8 commits existentes e não encontrou `.env`/`.env.local` commitidos nem valores de `service_role`, senha do banco ou chave privada; a ocorrência textual de `service_role` no primeiro commit era apenas documentação de aviso;
+- documentação de pré-lançamento atualizada.
+
+**Status:** aprovada localmente em 22/09/2026. Home/admin e recursos da V45 foram conferidos; `npm audit`, `npm run build` e `npm run preview -- --host` passaram. A validação de headers/CSP, Lighthouse e URLs definitivas permanece como etapa global de publicação.
+
+## V44 — Auditoria e endurecimento de segurança
+
+- auditoria real de RLS nas seis tabelas principais;
+- policies públicas e administrativas revisadas;
+- grants de `anon` e `authenticated` conferidos;
+- `public.is_admin()` auditada quanto a `SECURITY DEFINER`, `search_path`, proprietário e lógica baseada em `auth.uid()`;
+- permissões diretas de execução de `is_admin()` endurecidas, removendo `PUBLIC`/`anon`;
+- bucket `product-media` auditado;
+- upload limitado a 25 MB por arquivo e aos formatos JPEG, PNG, WebP, MP4 e WebM;
+- seletor de mídia do painel passa a rejeitar formato/tamanho incompatível antes do upload;
+- seletor de capa passa a aceitar explicitamente JPG, PNG e WebP;
+- login/logout e credenciais inválidas revisados;
+- persistência local e exposição de segredos revisadas;
+- corrigido o flash temporário de `Usuário sem permissão` após credenciais administrativas válidas;
+- criada a migração `supabase/v44_security_hardening.sql`;
+- documentação de segurança consolidada.
+
+**Status:** aprovada em 22/09/2026. A migração de hardening foi aplicada e foram aprovados o login administrativo sem flash indevido, logout, bloqueio do `/admin`, upload de mídia e edição de produto após o endurecimento.
+
+## V43 — SEO e preparação pública
+
+- título e meta description revisados para a loja pública;
+- metadados Open Graph e Twitter Card adicionados;
+- nova imagem social `og-image.jpg` em 1200 × 630;
+- favicon, Apple Touch Icon e ícones 192/512 adicionados;
+- `site.webmanifest` criado;
+- `robots.txt` criado com bloqueio de `/admin`;
+- `sitemap.xml` criado para a home;
+- rota `/admin` aplica `noindex, nofollow, noarchive` em runtime;
+- fontes do Google deixam de usar `@import` no CSS e passam a usar `preconnect` + `link` no HTML;
+- hero WebP recebe preload para melhorar carregamento inicial;
+- logo do cabeçalho passa de PNG pesado para WebP otimizado sem mudança visual planejada;
+- formatos antigos e não utilizados de hero/produtos são marcados para remoção;
+- conjunto de arquivos públicos cai de aproximadamente 5,1 MB para 1,2 MB após a limpeza indicada;
+- criada documentação específica de SEO e checklist de pré-lançamento.
+
+**Status:** instalada localmente e reportada como funcionando pelo usuário em 22/09/2026. A validação detalhada de compartilhamento, domínio final e PageSpeed permanece na regressão da V45.
 
 ## V42 — Funções finais do painel
 

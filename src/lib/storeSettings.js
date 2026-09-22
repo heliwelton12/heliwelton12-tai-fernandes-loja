@@ -21,6 +21,27 @@ export const DEFAULT_STORE_SETTINGS = {
   footer_tagline: 'Mais que moda íntima, é sobre você.',
 }
 
+
+export const STORE_SETTINGS_FIELDS = [
+  'id',
+  'store_name',
+  'whatsapp',
+  'instagram_url',
+  'instagram_handle',
+  'address',
+  'service_hours',
+  'pickup_enabled',
+  'pickup_note',
+  'delivery_enabled',
+  'delivery_note',
+  'delivery_fee_note',
+  'accept_pix',
+  'accept_card',
+  'accept_cash',
+  'footer_about',
+  'footer_tagline',
+].join(', ')
+
 export function normalizeWhatsapp(value) {
   return String(value || '').replace(/\D/g, '')
 }
@@ -30,7 +51,7 @@ export async function fetchStoreSettings() {
 
   const { data, error } = await supabase
     .from('store_settings')
-    .select('*')
+    .select(STORE_SETTINGS_FIELDS)
     .eq('id', 1)
     .maybeSingle()
 

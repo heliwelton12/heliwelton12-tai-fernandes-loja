@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase, supabaseConfigured } from './lib/supabaseClient'
-import { DEFAULT_STORE_SETTINGS } from './lib/storeSettings'
+import { DEFAULT_STORE_SETTINGS, STORE_SETTINGS_FIELDS } from './lib/storeSettings'
 import './admin.css'
 
 const EMPTY_FORM = {
@@ -16,6 +16,16 @@ const EMPTY_FORM = {
   sizes: '',
   colors: '',
 }
+
+const MAX_MEDIA_FILE_SIZE = 25 * 1024 * 1024
+const ALLOWED_MEDIA_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'video/mp4',
+  'video/webm',
+])
+const ALLOWED_CATEGORY_COVER_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
 function slugify(value) {
   return value
@@ -105,6 +115,7 @@ export default function AdminApp() {
   const [session, setSession] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
   const [adminAllowed, setAdminAllowed] = useState(false)
+  const [adminChecking, setAdminChecking] = useState(false)
   const [adminProfile, setAdminProfile] = useState(null)
   const [login, setLogin] = useState({ email: '', password: '' })
   const [loginError, setLoginError] = useState('')
@@ -128,7 +139,12 @@ export default function AdminApp() {
   const [categoryCoverSaving, setCategoryCoverSaving] = useState({})
   const [categoryCoverMessage, setCategoryCoverMessage] = useState('')
   const [newCategoryName, setNewCategoryName] = useState('')
+  const [newCategorySubtitle, setNewCategorySubtitle] = useState('')
   const [categoryCreating, setCategoryCreating] = useState(false)
+  const [categoryEditingId, setCategoryEditingId] = useState('')
+  const [categoryEditDraft, setCategoryEditDraft] = useState({ name: '', subtitle: '' })
+  const [categoryEditSaving, setCategoryEditSaving] = useState(false)
+  const [categoryDeleting, setCategoryDeleting] = useState(false)
   const [categoryReordering, setCategoryReordering] = useState(false)
   const [categoryVisibilitySaving, setCategoryVisibilitySaving] = useState({})
   const [duplicatingProductId, setDuplicatingProductId] = useState('')
@@ -136,8 +152,8 @@ export default function AdminApp() {
 
   const editing = Boolean(form.id)
   const selectedFormCategory = categories.find((category) => category.id === form.categoryId)
-  const isSexShopForm = selectedFormCategory?.name === 'Sex Shop'
-  const isPajamaForm = selectedFormCategory?.name === 'Pijamas'
+  const isSexShopForm = selectedFormCategory?.slug === 'sex-shop'
+  const isPajamaForm = selectedFormCategory?.slug === 'pijamas'
 
   useEffect(() => {
     if (!supabaseConfigured || !supabase) {
@@ -146,11 +162,14 @@ export default function AdminApp() {
     }
 
     supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session || null)
+      const nextSession = data.session || null
+      setAdminChecking(Boolean(nextSession?.user?.id))
+      setSession(nextSession)
       setAuthLoading(false)
     })
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setAdminChecking(Boolean(nextSession?.user?.id))
       setSession(nextSession)
     })
 
@@ -160,10 +179,12 @@ export default function AdminApp() {
   useEffect(() => {
     if (!session?.user?.id) {
       setAdminAllowed(false)
+      setAdminProfile(null)
+      setAdminChecking(false)
       return
     }
 
-    checkAdmin()
+    checkAdmin(session.user.id)
   }, [session?.user?.id])
 
   useEffect(() => {
@@ -254,18 +275,25 @@ export default function AdminApp() {
     }
   }
 
-  async function checkAdmin() {
-    const { data, error } = await supabase.rpc('is_admin')
+  async function checkAdmin(userId) {
+    setAdminChecking(true)
 
-    if (error) {
-      console.error('Falha ao verificar permissão administrativa:', error)
-      setAdminAllowed(false)
-      setAdminProfile(null)
-      return
+    try {
+      const { data, error } = await supabase.rpc('is_admin')
+
+      if (error) {
+        console.error('Falha ao verificar permissão administrativa:', error)
+        setAdminAllowed(false)
+        setAdminProfile(null)
+        return
+      }
+
+      const allowed = data === true
+      setAdminAllowed(allowed)
+      setAdminProfile(allowed ? { user_id: userId } : null)
+    } finally {
+      setAdminChecking(false)
     }
-
-    setAdminAllowed(data === true)
-    setAdminProfile(data === true ? { user_id: session.user.id } : null)
   }
 
   async function signIn(event) {
@@ -284,30 +312,38 @@ export default function AdminApp() {
     await supabase.auth.signOut()
     setAdminAllowed(false)
     setAdminProfile(null)
+    setAdminChecking(false)
   }
 
   async function loadCategories() {
     let { data, error } = await supabase
       .from('categories')
-      .select('id, name, slug, sort_order, cover_url, cover_storage_path, is_visible')
+      .select('id, name, slug, subtitle, sort_order, cover_url, cover_storage_path, is_visible')
       .order('sort_order')
 
-    // Compatibilidade caso uma instalação ainda não tenha executado as migrações mais recentes.
+    // Compatibilidade enquanto a migração da V46 ainda não tiver sido executada.
     if (error) {
       const fallback = await supabase
         .from('categories')
-        .select('id, name, slug, sort_order, cover_url, cover_storage_path')
+        .select('id, name, slug, sort_order, cover_url, cover_storage_path, is_visible')
         .order('sort_order')
 
-      data = (fallback.data || []).map((category) => ({ ...category, is_visible: true }))
+      data = (fallback.data || []).map((category) => ({
+        ...category,
+        subtitle: 'Confira nossos produtos',
+        is_visible: category.is_visible !== false,
+      }))
       error = fallback.error
     }
 
     if (!error) {
-      setCategories(data || [])
+      const nextCategories = data || []
+      setCategories(nextCategories)
       setForm((current) => ({
         ...current,
-        categoryId: current.categoryId || data?.[0]?.id || '',
+        categoryId: nextCategories.some((category) => category.id === current.categoryId)
+          ? current.categoryId
+          : nextCategories[0]?.id || '',
       }))
     }
   }
@@ -316,6 +352,7 @@ export default function AdminApp() {
     event.preventDefault()
 
     const name = newCategoryName.trim()
+    const subtitle = newCategorySubtitle.trim() || 'Confira nossos produtos'
     if (!name) {
       setCategoryCoverMessage('Digite o nome da nova categoria.')
       return
@@ -346,19 +383,134 @@ export default function AdminApp() {
 
       const { data, error } = await supabase
         .from('categories')
-        .insert({ name, slug, sort_order: nextSortOrder, is_visible: true })
-        .select('id, name, slug, sort_order, cover_url, cover_storage_path, is_visible')
+        .insert({ name, subtitle, slug, sort_order: nextSortOrder, is_visible: true })
+        .select('id, name, slug, subtitle, sort_order, cover_url, cover_storage_path, is_visible')
         .single()
 
       if (error) throw error
 
       setNewCategoryName('')
+      setNewCategorySubtitle('')
       await loadCategories()
       setCategoryCoverMessage(`Categoria ${data.name} adicionada. Agora você já pode escolher a capa dela.`)
     } catch (error) {
       setCategoryCoverMessage(`Não foi possível adicionar a categoria: ${error.message}`)
     } finally {
       setCategoryCreating(false)
+    }
+  }
+
+  function startCategoryEdit(category) {
+    setCategoryEditingId(category.id)
+    setCategoryEditDraft({
+      name: category.name || '',
+      subtitle: category.subtitle || 'Confira nossos produtos',
+    })
+    setCategoryCoverMessage('')
+  }
+
+  function cancelCategoryEdit() {
+    setCategoryEditingId('')
+    setCategoryEditDraft({ name: '', subtitle: '' })
+  }
+
+  async function saveCategoryEdit(category) {
+    if (categoryEditSaving) return
+
+    const name = categoryEditDraft.name.trim()
+    const subtitle = categoryEditDraft.subtitle.trim() || 'Confira nossos produtos'
+
+    if (!name) {
+      setCategoryCoverMessage('O nome da categoria não pode ficar vazio.')
+      return
+    }
+
+    const duplicatedName = categories.some(
+      (item) => item.id !== category.id && item.name.toLowerCase() === name.toLowerCase()
+    )
+
+    if (duplicatedName) {
+      setCategoryCoverMessage('Já existe outra categoria com esse nome.')
+      return
+    }
+
+    setCategoryEditSaving(true)
+    setCategoryCoverMessage('')
+
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .update({ name, subtitle })
+        .eq('id', category.id)
+
+      if (error) throw error
+
+      await Promise.all([loadCategories(), loadProducts()])
+      setCategoryEditingId('')
+      setCategoryEditDraft({ name: '', subtitle: '' })
+      setCategoryCoverMessage(`Categoria ${name} atualizada com sucesso.`)
+    } catch (error) {
+      setCategoryCoverMessage(`Não foi possível editar a categoria: ${error.message}`)
+    } finally {
+      setCategoryEditSaving(false)
+    }
+  }
+
+  async function deleteCategory(category) {
+    if (categoryDeleting) return
+
+    if (categories.length <= 1) {
+      setCategoryCoverMessage('A loja precisa manter pelo menos uma categoria.')
+      return
+    }
+
+    setCategoryDeleting(true)
+    setCategoryCoverMessage('')
+
+    try {
+      const { count, error: countError } = await supabase
+        .from('products')
+        .select('id', { count: 'exact', head: true })
+        .eq('category_id', category.id)
+
+      if (countError) throw countError
+
+      if ((count || 0) > 0) {
+        setCategoryCoverMessage(
+          `${category.name} possui ${count} ${count === 1 ? 'produto' : 'produtos'}. Mova ou exclua os produtos antes de apagar a categoria.`
+        )
+        return
+      }
+
+      const confirmed = window.confirm(
+        `Excluir a categoria “${category.name}”? Essa ação não poderá ser desfeita.`
+      )
+      if (!confirmed) return
+
+      const { error: deleteError } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', category.id)
+
+      if (deleteError) throw deleteError
+
+      if (category.cover_storage_path) {
+        const { error: storageError } = await supabase.storage
+          .from(PRODUCT_MEDIA_BUCKET)
+          .remove([category.cover_storage_path])
+
+        if (storageError) {
+          console.warn('Categoria excluída, mas não foi possível remover a capa antiga do Storage.', storageError)
+        }
+      }
+
+      if (categoryEditingId === category.id) cancelCategoryEdit()
+      await loadCategories()
+      setCategoryCoverMessage(`Categoria ${category.name} excluída.`)
+    } catch (error) {
+      setCategoryCoverMessage(`Não foi possível excluir a categoria: ${error.message}`)
+    } finally {
+      setCategoryDeleting(false)
     }
   }
 
@@ -443,8 +595,8 @@ export default function AdminApp() {
   function selectCategoryCover(category, file) {
     if (!file) return
 
-    if (!file.type.startsWith('image/')) {
-      setCategoryCoverMessage('Escolha uma imagem válida para a capa.')
+    if (!ALLOWED_CATEGORY_COVER_TYPES.has(file.type)) {
+      setCategoryCoverMessage('Use uma imagem JPG, PNG ou WebP para a capa.')
       return
     }
 
@@ -628,7 +780,7 @@ export default function AdminApp() {
   async function loadStoreSettings() {
     const { data, error } = await supabase
       .from('store_settings')
-      .select('*')
+      .select(STORE_SETTINGS_FIELDS)
       .eq('id', 1)
       .maybeSingle()
 
@@ -745,7 +897,7 @@ export default function AdminApp() {
 
   async function syncVariants(productId) {
     const selectedCategory = categories.find((category) => category.id === form.categoryId)
-    const sizes = selectedCategory?.name === 'Sex Shop' ? [] : uniqueList(form.sizes)
+    const sizes = selectedCategory?.slug === 'sex-shop' ? [] : uniqueList(form.sizes)
     const colors = uniqueList(form.colors)
 
     const { error: deleteError } = await supabase
@@ -1164,6 +1316,10 @@ export default function AdminApp() {
     )
   }
 
+  if (adminChecking) {
+    return <main className="admin-loading">Verificando acesso administrativo…</main>
+  }
+
   if (!adminAllowed) {
     return (
       <main className="admin-login-page">
@@ -1260,12 +1416,12 @@ export default function AdminApp() {
                   value={form.categoryId}
                   onChange={(event) => {
                     const categoryId = event.target.value
-                    const categoryName = categories.find((category) => category.id === categoryId)?.name
+                    const category = categories.find((item) => item.id === categoryId)
                     setForm((current) => ({
                       ...current,
                       categoryId,
-                      sizes: categoryName === 'Sex Shop' ? '' : current.sizes,
-                      audience: categoryName === 'Pijamas' ? current.audience : '',
+                      sizes: category?.slug === 'sex-shop' ? '' : current.sizes,
+                      audience: category?.slug === 'pijamas' ? current.audience : '',
                     }))
                   }}
                   required
@@ -1440,11 +1596,22 @@ export default function AdminApp() {
                   accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
                   onChange={(event) => {
                     const incoming = [...event.target.files]
+                    const supported = incoming.filter(
+                      (file) => ALLOWED_MEDIA_TYPES.has(file.type) && file.size <= MAX_MEDIA_FILE_SIZE
+                    )
+                    const rejected = incoming.length - supported.length
+
+                    if (rejected > 0) {
+                      setMessage(
+                        'Alguns arquivos não foram adicionados. Use JPG, PNG, WebP, MP4 ou WebM com até 25 MB por arquivo.'
+                      )
+                    }
+
                     setFiles((current) => {
                       const signatures = new Set(
                         current.map((file) => `${file.name}-${file.size}-${file.lastModified}`)
                       )
-                      const additions = incoming.filter(
+                      const additions = supported.filter(
                         (file) => !signatures.has(`${file.name}-${file.size}-${file.lastModified}`)
                       )
                       return [...current, ...additions]
@@ -1799,15 +1966,28 @@ export default function AdminApp() {
             )}
 
             <form className="admin-add-category" onSubmit={createCategory}>
-              <label className="admin-field">
-                <span>Nova categoria</span>
-                <input
-                  value={newCategoryName}
-                  onChange={(event) => setNewCategoryName(event.target.value)}
-                  placeholder="Ex.: Robes, Meias, Plus Size..."
-                  maxLength="60"
-                />
-              </label>
+              <div className="admin-add-category-fields">
+                <label className="admin-field">
+                  <span>Nova categoria</span>
+                  <input
+                    value={newCategoryName}
+                    onChange={(event) => setNewCategoryName(event.target.value)}
+                    placeholder="Ex.: Robes, Meias, Plus Size..."
+                    maxLength="60"
+                  />
+                </label>
+
+                <label className="admin-field">
+                  <span>Descrição curta</span>
+                  <input
+                    value={newCategorySubtitle}
+                    onChange={(event) => setNewCategorySubtitle(event.target.value)}
+                    placeholder="Ex.: Conforto e elegância para todos os momentos"
+                    maxLength="120"
+                  />
+                </label>
+              </div>
+
               <button type="submit" disabled={categoryCreating || !newCategoryName.trim()}>
                 {categoryCreating ? 'Adicionando…' : 'Adicionar categoria'}
               </button>
@@ -1832,8 +2012,9 @@ export default function AdminApp() {
                     </div>
 
                     <div className="admin-category-cover-content">
-                      <div>
+                      <div className="admin-category-summary">
                         <strong>{category.name}</strong>
+                        <span>{category.subtitle || 'Confira nossos produtos'}</span>
                         <small>
                           {draft
                             ? 'Nova imagem selecionada — salve para publicar.'
@@ -1842,6 +2023,79 @@ export default function AdminApp() {
                               : 'Usando a capa padrão do site.'}
                         </small>
                       </div>
+
+                      <div className="admin-category-management">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            categoryEditingId === category.id
+                              ? cancelCategoryEdit()
+                              : startCategoryEdit(category)
+                          }
+                        >
+                          {categoryEditingId === category.id ? 'Fechar edição' : 'Editar categoria'}
+                        </button>
+                      </div>
+
+                      {categoryEditingId === category.id && (
+                        <div className="admin-category-editor">
+                          <label>
+                            <span>Nome</span>
+                            <input
+                              value={categoryEditDraft.name}
+                              maxLength="60"
+                              onChange={(event) =>
+                                setCategoryEditDraft((current) => ({
+                                  ...current,
+                                  name: event.target.value,
+                                }))
+                              }
+                            />
+                          </label>
+
+                          <label>
+                            <span>Descrição curta</span>
+                            <textarea
+                              value={categoryEditDraft.subtitle}
+                              maxLength="120"
+                              rows="3"
+                              onChange={(event) =>
+                                setCategoryEditDraft((current) => ({
+                                  ...current,
+                                  subtitle: event.target.value,
+                                }))
+                              }
+                            />
+                            <small>{categoryEditDraft.subtitle.length}/120</small>
+                          </label>
+
+                          <div className="admin-category-editor-actions">
+                            <button
+                              type="button"
+                              className="primary"
+                              disabled={categoryEditSaving || !categoryEditDraft.name.trim()}
+                              onClick={() => saveCategoryEdit(category)}
+                            >
+                              {categoryEditSaving ? 'Salvando…' : 'Salvar categoria'}
+                            </button>
+                            <button
+                              type="button"
+                              disabled={categoryEditSaving}
+                              onClick={cancelCategoryEdit}
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              type="button"
+                              className="danger"
+                              disabled={categoryEditSaving || categoryDeleting}
+                              onClick={() => deleteCategory(category)}
+                            >
+                              {categoryDeleting ? 'Verificando…' : 'Excluir categoria'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
 
                       <div className="admin-category-visibility">
                         <span className={categoryVisible ? 'is-visible' : 'is-hidden'}>
@@ -1883,7 +2137,7 @@ export default function AdminApp() {
                       <label className="admin-category-cover-picker">
                         <input
                           type="file"
-                          accept="image/*"
+                          accept="image/jpeg,image/png,image/webp"
                           onChange={(event) => {
                             const file = event.target.files?.[0]
                             selectCategoryCover(category, file)

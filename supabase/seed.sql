@@ -1,12 +1,14 @@
 -- Categorias
-insert into public.categories (name, slug, sort_order) values
-  ('Lingeries', 'lingeries', 1),
-  ('Conjuntos', 'conjuntos', 2),
-  ('Camisolas', 'camisolas', 3),
-  ('Pijamas', 'pijamas', 4),
-  ('Sex Shop', 'sex-shop', 5)
+insert into public.categories (name, slug, subtitle, sort_order) values
+  ('Lingeries', 'lingeries', 'Delicadeza para todos os dias', 1),
+  ('Conjuntos', 'conjuntos', 'Combinações que encantam', 2),
+  ('Camisolas', 'camisolas', 'Leveza e feminilidade', 3),
+  ('Pijamas', 'pijamas', 'Feminino, masculino e infantil', 4),
+  ('Sex Shop', 'sex-shop', 'Autocuidado com discrição', 5)
 on conflict (slug) do update
-set name = excluded.name, sort_order = excluded.sort_order;
+set name = excluded.name,
+    subtitle = excluded.subtitle,
+    sort_order = excluded.sort_order;
 
 -- Produtos reais já cadastrados no frontend
 insert into public.products (category_id, name, slug, price, status, is_new, is_demo)

@@ -34,7 +34,8 @@ store_settings
 |---|---|
 | `id` | UUID da categoria |
 | `name` | nome único |
-| `slug` | slug único |
+| `slug` | slug único e identificador técnico estável |
+| `subtitle` | descrição curta exibida nos cards (até 120 caracteres) |
 | `sort_order` | ordem na loja |
 | `is_visible` | controla se a categoria aparece ao público |
 | `cover_url` | URL pública da capa |
@@ -193,6 +194,12 @@ Adiciona campos das capas nas categorias.
 ### `supabase/v42_category_visibility.sql`
 
 Adiciona `categories.is_visible` e ajusta as políticas de leitura para esconder categorias/produtos do público sem impedir a administração dos registros ocultos.
+
+### `supabase/v46_category_editing.sql`
+
+Adiciona `categories.subtitle`, preserva os textos conhecidos das categorias existentes e limita a descrição curta a 120 caracteres.
+
+O nome visível pode ser editado sem alterar o `slug`, que permanece como identificador técnico estável.
 
 ### `supabase/v25_admin_display_name.sql`
 

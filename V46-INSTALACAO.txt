@@ -1,0 +1,17 @@
+TAI FERNANDES — V46
+
+1. Mescle os arquivos deste pacote por cima do projeto atual.
+2. Não altere .env.local.
+3. No Supabase, abra SQL Editor com Role: Postgres.
+4. Execute SOMENTE:
+   supabase/v46_category_editing.sql
+5. Não execute schema.sql novamente.
+6. Rode:
+   npm run dev -- --host
+7. Teste:
+   - editar nome/descrição de categoria;
+   - proteção de exclusão;
+   - modal Espiar permanece aberto após adicionar;
+   - compra rápida permanece aberta;
+   - rodapé desktop/mobile.
+8. Não faça git push ainda.

@@ -123,3 +123,32 @@ acessado diretamente em uma nova aba, além das rotas públicas. A hospedagem de
 Alterações de conteúdo feitas pelo painel — produtos, categorias, capas e configurações — devem continuar sendo salvas no Supabase e não precisam de novo build do frontend.
 
 Novo deploy deve ser reservado principalmente para mudanças de código, layout ou infraestrutura.
+
+## V45 — arquivos específicos do Cloudflare Pages
+
+A pasta `public/` contém `_headers`. O Vite copia esse arquivo para o `dist/` durante o build e o Cloudflare Pages o utiliza para aplicar headers de segurança.
+
+Antes da v1.0.0:
+
+```bash
+npm audit
+npm run build
+npm run preview -- --host
+```
+
+No build final, confirme que existem em `dist/`:
+
+```text
+_headers
+robots.txt
+sitemap.xml
+llms.txt
+og-image.jpg
+site.webmanifest
+```
+
+Os headers devem ser validados somente no endereço publicado, pois o servidor de desenvolvimento do Vite não interpreta `_headers`.
+
+### Atenção ao JSON-LD e CSP
+
+A CSP da V45 autoriza o bloco JSON-LD inline por hash SHA-256. Quando as URLs do JSON-LD forem trocadas do endereço temporário para o domínio definitivo, o conteúdo do bloco muda e o hash em `public/_headers` também precisa ser recalculado. Essa atualização faz parte da etapa final de publicação.

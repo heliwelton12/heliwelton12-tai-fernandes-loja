@@ -181,3 +181,14 @@ dist/
 ```
 
 A hospedagem precisa ter fallback de SPA para que `/admin` abra diretamente sem retornar 404.
+
+## Rotas públicas na V45
+
+A aplicação continua sem biblioteca de roteamento. `src/main.jsx` decide qual componente renderizar a partir de `window.location.pathname`:
+
+- `/` → loja pública;
+- `/admin` → painel administrativo;
+- `/privacidade` → Política de Privacidade;
+- qualquer outro caminho → página 404 interna.
+
+A hospedagem precisa continuar com fallback de SPA para que essas rotas sejam entregues ao `index.html`.

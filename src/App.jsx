@@ -220,11 +220,11 @@ const staticCatalogProducts = [...realProducts, ...demoProducts]
 
 
 const DEFAULT_CATEGORIES = [
-  { name: 'Lingeries', subtitle: 'Delicadeza para todos os dias', tone: 'rose', image: '/products/lingerie-01.webp' },
-  { name: 'Conjuntos', subtitle: 'Combinações que encantam', tone: 'wine' },
-  { name: 'Camisolas', subtitle: 'Leveza e feminilidade', tone: 'blush' },
-  { name: 'Pijamas', subtitle: 'Feminino, masculino e infantil', tone: 'dust' },
-  { name: 'Sex Shop', subtitle: 'Autocuidado com discrição', tone: 'soft', adult: true, image: '/products/sexshop-01.webp' },
+  { name: 'Lingeries', slug: 'lingeries', subtitle: 'Delicadeza para todos os dias', tone: 'rose', image: '/products/lingerie-01.webp' },
+  { name: 'Conjuntos', slug: 'conjuntos', subtitle: 'Combinações que encantam', tone: 'wine' },
+  { name: 'Camisolas', slug: 'camisolas', subtitle: 'Leveza e feminilidade', tone: 'blush' },
+  { name: 'Pijamas', slug: 'pijamas', subtitle: 'Feminino, masculino e infantil', tone: 'dust' },
+  { name: 'Sex Shop', slug: 'sex-shop', subtitle: 'Autocuidado com discrição', tone: 'soft', adult: true, image: '/products/sexshop-01.webp' },
 ]
 
 function Icon({ name, size = 22 }) {
@@ -387,6 +387,7 @@ function App() {
   const [pendingAdultCategory, setPendingAdultCategory] = useState(null)
   const [pendingAdultProduct, setPendingAdultProduct] = useState(null)
   const [toast, setToast] = useState('')
+  const [addedFeedback, setAddedFeedback] = useState(null)
   const [cartPulse, setCartPulse] = useState(false)
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [pajamaAudience, setPajamaAudience] = useState('Todos')
@@ -411,7 +412,7 @@ function App() {
 
       let { data, error } = await supabase
         .from('categories')
-        .select('id, name, slug, sort_order, cover_url, cover_storage_path, is_visible')
+        .select('id, name, slug, subtitle, sort_order, cover_url, cover_storage_path, is_visible')
         .order('sort_order')
 
       if (error) {
@@ -435,21 +436,26 @@ function App() {
       const defaultsByName = new Map(
         DEFAULT_CATEGORIES.map((category) => [category.name, category])
       )
+      const defaultsBySlug = new Map(
+        DEFAULT_CATEGORIES.map((category) => [category.slug, category])
+      )
 
       const merged = (data || [])
         .filter((row) => row.is_visible !== false)
         .map((row) => {
-        const fallback = defaultsByName.get(row.name) || {
+        const fallback = defaultsBySlug.get(row.slug) || defaultsByName.get(row.name) || {
           name: row.name,
           subtitle: 'Confira nossos produtos',
           tone: 'rose',
-          adult: row.name === 'Sex Shop',
+          adult: row.slug === 'sex-shop',
         }
 
         return {
           ...fallback,
           id: row.id,
+          name: row.name,
           slug: row.slug,
+          subtitle: row.subtitle?.trim() || fallback.subtitle || 'Confira nossos produtos',
           sortOrder: row.sort_order,
           image: row.cover_url || fallback.image || '',
           coverStoragePath: row.cover_storage_path || '',
@@ -468,7 +474,7 @@ function App() {
 
   const whatsappNumber = normalizeWhatsapp(storeSettings.whatsapp || DEFAULT_STORE_SETTINGS.whatsapp)
   const instagramUrl = storeSettings.instagram_url || DEFAULT_STORE_SETTINGS.instagram_url
-  const instagramHandle = storeSettings.instagram_handle || DEFAULT_STORE_SETTINGS.instagram_handle
+  const instagramHandle = storeSettings.instagram_handle || DEFAULT_STORE_SETTINGS.instagram_handle || '@tf.modaintima2'
 
   const paymentOptions = useMemo(() => {
     const methods = []
@@ -490,6 +496,13 @@ function App() {
     [categories]
   )
 
+  const activeCategoryRecord = useMemo(
+    () => categories.find((category) => category.name === activeCategory) || null,
+    [categories, activeCategory]
+  )
+
+  const activeCategorySlug = activeCategoryRecord?.slug || ''
+
   const customerCatalogProducts = useMemo(() => {
     const source = SHOW_DEMO_PRODUCTS
       ? catalogProducts
@@ -507,6 +520,11 @@ function App() {
   }, [favorites, catalogProducts])
 
   useEffect(() => {
+    if (!profile.name.trim() && !profile.phone.trim()) {
+      localStorage.removeItem('tf-profile')
+      return
+    }
+
     localStorage.setItem('tf-profile', JSON.stringify(profile))
   }, [profile])
 
@@ -622,7 +640,7 @@ function App() {
       filtered = filtered.filter((product) => product.category === activeCategory)
     }
 
-    if (activeCategory === 'Pijamas' && pajamaAudience !== 'Todos') {
+    if (activeCategorySlug === 'pijamas' && pajamaAudience !== 'Todos') {
       filtered = filtered.filter((product) => product.audience === pajamaAudience)
     }
 
@@ -634,7 +652,7 @@ function App() {
         product.name.toLowerCase().includes(query) ||
         product.category.toLowerCase().includes(query)
     )
-  }, [search, activeCategory, pajamaAudience, customerCatalogProducts])
+  }, [search, activeCategory, activeCategorySlug, pajamaAudience, customerCatalogProducts])
 
   const newestProducts = useMemo(() => {
     const markedNew = customerCatalogProducts.filter((product) => product.isNew)
@@ -702,7 +720,10 @@ function App() {
   }
 
   function openCategory(categoryName) {
-    if (categoryName === 'Sex Shop' && localStorage.getItem('tf-adult-confirmed') !== 'true') {
+    const category = categories.find((item) => item.name === categoryName)
+    const isAdultCategory = category?.slug === 'sex-shop' || categoryName === 'Sex Shop'
+
+    if (isAdultCategory && localStorage.getItem('tf-adult-confirmed') !== 'true') {
       setPendingAdultCategory(categoryName)
       setAdultGateOpen(true)
       setMenuOpen(false)
@@ -748,7 +769,7 @@ function App() {
     setHeaderSearch('')
     setSearchOpen(false)
 
-    if (product.category === 'Sex Shop' && localStorage.getItem('tf-adult-confirmed') !== 'true') {
+    if ((product.categorySlug === 'sex-shop' || product.category === 'Sex Shop') && localStorage.getItem('tf-adult-confirmed') !== 'true') {
       setPendingAdultProduct(product)
       setAdultGateOpen(true)
       return
@@ -776,7 +797,7 @@ function App() {
   }
 
   function hasSizeOptions(product) {
-    return product?.category !== 'Sex Shop' && Array.isArray(product?.sizes) && product.sizes.length > 0
+    return product?.categorySlug !== 'sex-shop' && product?.category !== 'Sex Shop' && Array.isArray(product?.sizes) && product.sizes.length > 0
   }
 
   function hasColorOptions(product) {
@@ -838,6 +859,20 @@ function App() {
     setToast('Dados salvos neste aparelho')
   }
 
+  function clearProfile() {
+    const shouldClear = window.confirm(
+      'Remover o nome e o WhatsApp salvos neste aparelho?'
+    )
+
+    if (!shouldClear) return
+
+    localStorage.removeItem('tf-profile')
+    setProfile({ name: '', phone: '' })
+    setCustomerName('')
+    setCustomerPhone('')
+    setToast('Nome e WhatsApp removidos deste aparelho')
+  }
+
   function openQuickBuy(product) {
     if (isProductSoldOut(product)) {
       setToast('Este produto está esgotado no momento.')
@@ -891,9 +926,16 @@ function App() {
       ]
     })
 
-    setQuickBuyId(null)
-    setPreviewProduct(null)
     setPreviewQuantity(1)
+
+    const feedbackToken = Date.now()
+    setAddedFeedback({ productId: product.id, token: feedbackToken })
+    window.setTimeout(() => {
+      setAddedFeedback((current) =>
+        current?.token === feedbackToken ? null : current
+      )
+    }, 1800)
+
     setToast(`${safeQuantity > 1 ? `${safeQuantity} itens adicionados` : 'Produto adicionado'} à sacola`)
     setCartPulse(true)
     window.setTimeout(() => setCartPulse(false), 520)
@@ -1179,7 +1221,7 @@ function App() {
           </div>
 
           <button className="brand" onClick={goHome}>
-            <img src="/logo-header.png" alt="Tai Fernandes Moda Íntima" />
+            <img src="/logo-header.webp" alt="Tai Fernandes Moda Íntima" />
           </button>
 
           <nav className={`mobile-drawer ${menuOpen ? 'open' : ''}`}>
@@ -1564,8 +1606,11 @@ function App() {
                         </label>
                       )}
 
-                      <button className="home-quick-buy-add" onClick={() => addToCart(product)}>
-                        Adicionar à sacola
+                      <button
+                        className={`home-quick-buy-add ${addedFeedback?.productId === product.id ? 'is-added' : ''}`}
+                        onClick={() => addToCart(product)}
+                      >
+                        {addedFeedback?.productId === product.id ? '✓ Adicionado' : 'Adicionar à sacola'}
                       </button>
                     </div>
                   )}
@@ -1593,16 +1638,16 @@ function App() {
               <p className="eyebrow">CATEGORIA</p>
               <h1>{activeCategory}</h1>
               <p>
-                {activeCategory === 'Pijamas'
+                {activeCategorySlug === 'pijamas'
                   ? 'Escolha entre modelos femininos, masculinos e infantis.'
-                  : activeCategory === 'Sex Shop'
+                  : activeCategorySlug === 'sex-shop'
                     ? 'Produtos selecionados com discrição e atendimento pelo WhatsApp.'
-                    : 'Confira os produtos disponíveis nesta categoria.'}
+                    : activeCategoryRecord?.subtitle || 'Confira os produtos disponíveis nesta categoria.'}
               </p>
             </div>
           </div>
 
-          {SHOW_DEMO_PRODUCTS && ['Conjuntos', 'Camisolas', 'Pijamas'].includes(activeCategory) && (
+          {SHOW_DEMO_PRODUCTS && ['conjuntos', 'camisolas', 'pijamas'].includes(activeCategorySlug) && (
             <div className="demo-category-notice">
               <strong>Produtos demonstrativos</strong>
               <span>
@@ -1627,7 +1672,7 @@ function App() {
             </span>
           </div>
 
-          {activeCategory === 'Pijamas' && (
+          {activeCategorySlug === 'pijamas' && (
             <div className="pajama-subcategories">
               {['Todos', 'Feminino', 'Masculino', 'Infantil'].map((audience) => (
                 <button
@@ -1746,8 +1791,11 @@ function App() {
                           </label>
                         )}
 
-                        <button className="quick-buy-add" onClick={() => addToCart(product)}>
-                          Adicionar à sacola
+                        <button
+                          className={`quick-buy-add ${addedFeedback?.productId === product.id ? 'is-added' : ''}`}
+                          onClick={() => addToCart(product)}
+                        >
+                          {addedFeedback?.productId === product.id ? '✓ Adicionado' : 'Adicionar à sacola'}
                         </button>
                       </div>
                     )}
@@ -1916,6 +1964,8 @@ function App() {
                   value={profile.name}
                   onChange={(event) => setProfile((current) => ({ ...current, name: event.target.value }))}
                   placeholder="Seu nome"
+                  maxLength={80}
+                  autoComplete="name"
                 />
               </label>
 
@@ -1926,11 +1976,18 @@ function App() {
                   value={profile.phone}
                   onChange={(event) => setProfile((current) => ({ ...current, phone: event.target.value }))}
                   placeholder="(75) 99999-9999"
+                  maxLength={30}
+                  autoComplete="tel"
+                  inputMode="tel"
                 />
               </label>
 
               <button className="account-save" onClick={saveProfile}>
                 Salvar meus dados
+              </button>
+
+              <button className="account-clear" type="button" onClick={clearProfile}>
+                Limpar nome e WhatsApp
               </button>
 
               <small className="account-note">
@@ -2057,6 +2114,7 @@ function App() {
                       }}
                       placeholder="Nome da cliente"
                       autoComplete="name"
+                      maxLength={80}
                       enterKeyHint="next"
                     />
                   </label>
@@ -2072,6 +2130,7 @@ function App() {
                       }}
                       placeholder="(75) 99999-9999"
                       autoComplete="tel"
+                      maxLength={30}
                       inputMode="tel"
                       enterKeyHint="next"
                     />
@@ -2123,6 +2182,7 @@ function App() {
                               clearCheckoutError()
                             }}
                             placeholder="Ex.: R$ 100,00"
+                            maxLength={20}
                             inputMode="decimal"
                             enterKeyHint="done"
                           />
@@ -2163,6 +2223,7 @@ function App() {
                             clearCheckoutError()
                           }}
                           placeholder="Rua / Avenida"
+                          maxLength={120}
                           autoComplete="street-address"
                           enterKeyHint="next"
                         />
@@ -2179,6 +2240,7 @@ function App() {
                             clearCheckoutError()
                           }}
                           placeholder="Nº"
+                          maxLength={20}
                           inputMode="numeric"
                           enterKeyHint="next"
                         />
@@ -2195,6 +2257,7 @@ function App() {
                             clearCheckoutError()
                           }}
                           placeholder="Bairro"
+                          maxLength={80}
                           enterKeyHint="next"
                         />
                       </label>
@@ -2209,6 +2272,7 @@ function App() {
                             clearCheckoutError()
                           }}
                           placeholder="Opcional"
+                          maxLength={100}
                         />
                       </label>
 
@@ -2222,6 +2286,7 @@ function App() {
                             clearCheckoutError()
                           }}
                           placeholder="Opcional"
+                          maxLength={120}
                         />
                       </label>
                     </div>
@@ -2236,6 +2301,7 @@ function App() {
                         clearCheckoutError()
                       }}
                       placeholder="Alguma observação sobre o pedido?"
+                      maxLength={500}
                       rows="3"
                     />
                   </label>
@@ -2416,11 +2482,15 @@ function App() {
               </div>
 
               <button
-                className="modal-add-button"
+                className={`modal-add-button ${addedFeedback?.productId === previewProduct.id ? 'is-added' : ''}`}
                 onClick={() => addToCart(previewProduct, previewQuantity)}
                 disabled={isProductSoldOut(previewProduct)}
               >
-                {isProductSoldOut(previewProduct) ? 'Produto esgotado' : 'Adicionar à sacola'}
+                {isProductSoldOut(previewProduct)
+                  ? 'Produto esgotado'
+                  : addedFeedback?.productId === previewProduct.id
+                    ? '✓ Adicionado'
+                    : 'Adicionar à sacola'}
               </button>
 
             </div>
@@ -2431,7 +2501,7 @@ function App() {
       <footer className="premium-footer">
         <div className="premium-footer-main">
           <div className="footer-about">
-            <img src="/logo-header.png" alt="Tai Fernandes Moda Íntima" />
+            <img src="/logo-header.webp" alt="Tai Fernandes Moda Íntima" />
             <p>{storeSettings.footer_about}</p>
             <div className="footer-social">
               <a href={instagramUrl} target="_blank" rel="noreferrer">
@@ -2450,57 +2520,39 @@ function App() {
           </div>
 
           <div className="footer-column">
-            <h3>Navegação</h3>
-            <button onClick={goHome}>Início</button>
-            {categories.map((category) => (
-              <button key={`footer-${category.id || category.name}`} onClick={() => openCategory(category.name)}>
-                {category.name}
-              </button>
-            ))}
-          </div>
-
-          <div className="footer-column">
             <h3>Atendimento</h3>
             <a
               href={`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`}
               target="_blank"
               rel="noreferrer"
             >
-              WhatsApp
+              Falar no WhatsApp
             </a>
-            <a href={instagramUrl} target="_blank" rel="noreferrer">
-              {instagramHandle}
-            </a>
-            <span>Pedidos pelo WhatsApp</span>
-            {storeSettings.address && <span>{storeSettings.address}</span>}
             {storeSettings.service_hours && <span>{storeSettings.service_hours}</span>}
+            {storeSettings.address && <span>{storeSettings.address}</span>}
             {storeSettings.pickup_enabled && <span>{storeSettings.pickup_note}</span>}
             {storeSettings.delivery_enabled && <span>{storeSettings.delivery_note}</span>}
           </div>
 
           <div className="footer-column">
-            <h3>Informações</h3>
-            {storeSettings.accept_pix && <span>Pagamento por Pix</span>}
-            {storeSettings.accept_card && <span>Pagamento em cartão</span>}
-            {storeSettings.accept_cash && <span>Pagamento em dinheiro</span>}
-            <span>Sex Shop: conteúdo 18+</span>
+            <h3>Links úteis</h3>
+            <button type="button" onClick={() => setAccountOpen(true)}>Meus dados</button>
+            <a href="/privacidade">Política de privacidade</a>
+            <span>Sex Shop · conteúdo 18+</span>
           </div>
         </div>
 
-        <div className="footer-payment-row">
+        <div className="footer-payment-row footer-payment-row-simple">
           <div>
             <span className="footer-small-title">Formas de pagamento</span>
             <div className="payment-pills">
               {paymentOptions.map((method) => <span key={method}>{method}</span>)}
             </div>
           </div>
-
-          <p>Mais que moda íntima, é sobre você.</p>
         </div>
 
-        <div className="footer-bottom">
+        <div className="footer-bottom footer-bottom-simple">
           <span>© 2026 Tai Fernandes — Moda Íntima. Todos os direitos reservados.</span>
-          <span>Categoria Sex Shop destinada a maiores de 18 anos.</span>
         </div>
       </footer>
 

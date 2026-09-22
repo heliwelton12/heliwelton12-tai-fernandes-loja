@@ -5,6 +5,7 @@ create table if not exists public.categories (
   id uuid primary key default gen_random_uuid(),
   name text not null unique,
   slug text not null unique,
+  subtitle text not null default 'Confira nossos produtos' check (char_length(subtitle) <= 120),
   sort_order integer not null default 0,
   is_visible boolean not null default true,
   cover_url text,
@@ -84,7 +85,8 @@ as $$
   );
 $$;
 
-grant execute on function public.is_admin() to authenticated;
+revoke execute on function public.is_admin() from public, anon;
+grant execute on function public.is_admin() to authenticated, service_role;
 
 -- RLS
 alter table public.categories enable row level security;
@@ -231,9 +233,18 @@ create policy variants_admin_delete on public.product_variants
 for delete to authenticated using (public.is_admin());
 
 -- Storage público para fotos e vídeos de produtos.
-insert into storage.buckets (id, name, public)
-values ('product-media', 'product-media', true)
-on conflict (id) do update set public = excluded.public;
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'product-media',
+  'product-media',
+  true,
+  26214400,
+  array['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm']::text[]
+)
+on conflict (id) do update set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
 
 drop policy if exists product_media_public_storage_read on storage.objects;
 create policy product_media_public_storage_read

@@ -1,0 +1,33 @@
+V45 — PRÉ-LANÇAMENTO, PRIVACIDADE E ACABAMENTO
+
+1. Mescle os arquivos deste pacote por cima do projeto atual.
+2. Não altere nem substitua o seu .env.local.
+3. Não há SQL novo nesta versão.
+4. Continue sem git push enquanto os testes finais não terminarem.
+
+TESTE NO LOCALHOST
+npm run dev -- --host
+
+Conferir:
+- home desktop e celular;
+- /privacidade;
+- Meus dados > Limpar nome e WhatsApp;
+- uma rota inexistente, por exemplo /pagina-que-nao-existe;
+- /admin;
+- carrinho, favoritos e WhatsApp;
+- animações sutis e ausência de quebra visual.
+
+TESTES TÉCNICOS FINAIS
+npm audit
+npm run build
+npm run preview -- --host
+
+Observações:
+- public/_headers será validado somente depois do deploy no Cloudflare Pages;
+- canonical, OG, sitemap, JSON-LD e llms.txt ainda usam a URL temporária do Netlify;
+- essas URLs serão trocadas quando o domínio definitivo estiver definido.
+
+IMPORTANTE SOBRE O DOMÍNIO FINAL
+Ao trocar as URLs do JSON-LD no index.html, o hash permitido pela CSP também muda.
+Na etapa final do Cloudflare, atualizar public/_headers junto com index.html.
+Não publicar a troca de domínio sem recalcular/validar esse hash.

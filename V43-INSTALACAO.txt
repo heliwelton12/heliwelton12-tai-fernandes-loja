@@ -1,0 +1,27 @@
+V43 — INSTALAÇÃO LOCAL
+
+1. Copie/mescle os arquivos deste pacote na raiz do projeto atual.
+2. NÃO substitua nem apague o arquivo .env.local.
+3. Abra REMOVER-ARQUIVOS-V43.txt e apague somente os arquivos listados.
+4. NÃO execute SQL. A V43 não possui migração de banco.
+5. NÃO faça git push ainda.
+6. Rode:
+
+   npm run dev -- --host
+
+7. Teste no navegador:
+
+   /
+   /admin
+   /favicon.ico
+   /og-image.jpg
+   /robots.txt
+   /sitemap.xml
+
+8. Confirme que a logo do cabeçalho continua visualmente igual.
+9. Depois, teste o build local:
+
+   npm run build
+   npm run preview -- --host
+
+As URLs de canonical/Open Graph/sitemap ainda usam o endereço atual do Netlify e serão trocadas pelo domínio definitivo na publicação do Cloudflare.

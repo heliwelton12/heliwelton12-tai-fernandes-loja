@@ -1,0 +1,28 @@
+# Tai Fernandes Moda Íntima
+
+Site oficial da Tai Fernandes Moda Íntima, com catálogo online e pedidos finalizados pelo WhatsApp.
+
+## Principais áreas
+- Lingeries
+- Conjuntos
+- Camisolas
+- Pijamas
+- Baby Doll
+- Sex Shop (conteúdo destinado a maiores de 18 anos)
+
+## Funcionamento do site
+- Os produtos, categorias e capas são gerenciados pela administração da loja.
+- A cliente não precisa criar conta para comprar.
+- A sacola organiza o pedido e a finalização abre uma mensagem no WhatsApp.
+- Informações públicas da loja podem ser atualizadas pelo painel administrativo.
+
+## Páginas
+- Página inicial: https://taifernandes-modaintima.netlify.app/
+- Política de privacidade: https://taifernandes-modaintima.netlify.app/privacidade
+- Sitemap: https://taifernandes-modaintima.netlify.app/sitemap.xml
+
+## Contato público
+- Instagram: https://www.instagram.com/tf.modaintima2
+- WhatsApp: +55 75 98153-7356
+
+Observação: as URLs acima são temporárias e serão atualizadas para o domínio definitivo no lançamento da versão 1.0.0.

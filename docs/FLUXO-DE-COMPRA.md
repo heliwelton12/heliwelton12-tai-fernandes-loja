@@ -193,3 +193,26 @@ Antes da v1.0.0, validar novamente:
 - persistência da sacola;
 - total do site versus mensagem;
 - abertura correta do WhatsApp em celular.
+
+## Privacidade na V45
+
+A cliente pode salvar nome e WhatsApp no próprio navegador para agilizar pedidos. Em **Meus dados**, a ação **Limpar nome e WhatsApp** remove essas informações do armazenamento local e limpa os campos correspondentes do checkout.
+
+A sacola e os favoritos não são apagados por essa ação.
+
+
+## Adição contínua à sacola — V46
+
+Adicionar um produto não encerra mais o contexto de compra.
+
+No modal `Espiar`:
+
+1. cliente escolhe tamanho/cor quando houver;
+2. define a quantidade;
+3. toca em `Adicionar à sacola`;
+4. o modal permanece aberto;
+5. o botão mostra `✓ Adicionado` temporariamente;
+6. a quantidade volta para 1, mas tamanho/cor permanecem selecionados;
+7. a cliente pode adicionar outra unidade/variação, abrir a sacola pelo toast ou fechar o produto manualmente.
+
+A compra rápida nos cards segue a mesma regra: permanece aberta até a cliente fechar.

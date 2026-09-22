@@ -1,0 +1,18 @@
+V44 — AUDITORIA E ENDURECIMENTO DE SEGURANÇA
+
+1. Mescle este pacote no projeto atual.
+2. Não substitua nem compartilhe o arquivo .env.local.
+3. No Supabase > SQL Editor, selecione Role: Postgres.
+4. Execute UMA VEZ: supabase/v44_security_hardening.sql
+5. Não execute schema.sql inteiro.
+6. Continue somente no localhost; não faça git push.
+7. Testes obrigatórios após a instalação:
+   - login correto: não deve piscar “Usuário sem permissão”;
+   - logout e retorno a /admin;
+   - login inválido;
+   - upload JPG/PNG/WebP;
+   - upload MP4/WebM quando houver arquivo de teste;
+   - confirmar que arquivos incompatíveis/acima de 25 MB são recusados;
+   - cadastrar/editar produto e capa normalmente.
+
+Após os testes, atualizar TESTES.md/CHANGELOG para V44 APROVADA.

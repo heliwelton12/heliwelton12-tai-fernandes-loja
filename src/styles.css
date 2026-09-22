@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
-
 :root {
   --rose: #be536f;
   --rose-dark: #9f405a;
@@ -5075,5 +5073,341 @@ a {
 
   .modal-total-preview {
     text-align: left;
+  }
+}
+
+/* V45 — acabamento, privacidade e acessibilidade */
+.account-clear {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: white;
+  color: #8d5969;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.account-clear:hover {
+  border-color: #d9a6b5;
+  background: var(--rose-pale);
+}
+
+.footer-bottom-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px 18px;
+  text-align: right;
+}
+
+.footer-bottom-links a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.footer-bottom-links a:hover {
+  color: var(--rose-dark);
+}
+
+.legal-page,
+.not-found-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(190, 83, 111, 0.07), transparent 28%),
+    #fffdfd;
+}
+
+.legal-shell {
+  width: min(900px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 44px 0 72px;
+}
+
+.legal-back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  margin-bottom: 34px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: white;
+  color: var(--rose-dark);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.legal-header {
+  max-width: 760px;
+  margin-bottom: 30px;
+}
+
+.legal-header h1,
+.not-found-card h1 {
+  margin: 8px 0 14px;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(42px, 7vw, 72px);
+  line-height: .98;
+}
+
+.legal-header > p:last-child,
+.not-found-card > p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.legal-card {
+  margin-top: 14px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, .88);
+}
+
+.legal-card h2 {
+  margin: 0 0 10px;
+  font-family: 'Playfair Display', serif;
+  font-size: 27px;
+}
+
+.legal-card p {
+  margin: 8px 0 0;
+  color: #675b5f;
+  line-height: 1.72;
+}
+
+.legal-updated {
+  margin: 24px 0 0;
+  color: #9a8b90;
+  font-size: 12px;
+}
+
+.not-found-page {
+  display: grid;
+  place-items: center;
+  padding: 28px;
+}
+
+.not-found-card {
+  width: min(680px, 100%);
+  padding: clamp(30px, 7vw, 64px);
+  border: 1px solid var(--line);
+  border-radius: 32px;
+  background: rgba(255, 255, 255, .94);
+  text-align: center;
+  box-shadow: 0 28px 80px rgba(101, 53, 65, .09);
+}
+
+.not-found-code {
+  display: block;
+  margin: 6px 0 -10px;
+  color: var(--rose-soft);
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(86px, 18vw, 170px);
+  font-weight: 700;
+  line-height: .85;
+}
+
+.not-found-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  margin-top: 24px;
+  padding: 0 24px;
+  border-radius: 999px;
+  background: var(--rose);
+  color: white;
+  font-weight: 800;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-copy {
+    animation: v45-rise-in .52s ease both;
+  }
+
+  .hero-visual {
+    animation: v45-soft-in .65s ease .08s both;
+  }
+
+  .categories-intro,
+  .categories-carousel-shell,
+  .new-arrivals-heading,
+  .story-band {
+    animation: v45-rise-in .5s ease both;
+  }
+
+  .new-arrival-card,
+  .product-card {
+    animation: v45-card-in .42s ease both;
+  }
+
+  .product-card,
+  .new-arrival-card,
+  .favorite-button,
+  .modal-favorite,
+  .floating-whatsapp {
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+  }
+
+  .product-card:hover,
+  .new-arrival-card:hover {
+    transform: translateY(-3px);
+  }
+
+  .favorite-button:active,
+  .modal-favorite:active {
+    transform: scale(.94);
+  }
+
+  .favorite-button.active,
+  .modal-favorite.active {
+    animation: v45-heart-pop .28s ease;
+  }
+
+  .product-gallery-main img,
+  .product-media img,
+  .new-arrival-media img {
+    animation: v45-soft-in .3s ease both;
+  }
+}
+
+@keyframes v45-rise-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes v45-soft-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes v45-card-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes v45-heart-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .footer-bottom-links {
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .legal-shell {
+    width: min(100% - 24px, 900px);
+    padding-top: 26px;
+  }
+
+  .legal-card {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .legal-card h2 {
+    font-size: 23px;
+  }
+
+  .not-found-page {
+    padding: 18px;
+  }
+
+  .not-found-card {
+    padding: 34px 22px;
+    border-radius: 26px;
+  }
+}
+
+
+/* v46 — acabamento final de rodapé e feedback da sacola */
+.premium-footer-main {
+  grid-template-columns: minmax(280px, 1.35fr) repeat(2, minmax(180px, .8fr));
+  gap: clamp(34px, 5vw, 72px);
+}
+
+.footer-payment-row-simple {
+  grid-template-columns: 1fr;
+}
+
+.footer-bottom-simple {
+  justify-content: flex-start;
+  padding-bottom: 42px;
+}
+
+.home-quick-buy-add.is-added,
+.quick-buy-add.is-added,
+.modal-add-button.is-added {
+  background: #9f405a;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-quick-buy-add.is-added,
+  .quick-buy-add.is-added,
+  .modal-add-button.is-added {
+    animation: v46-added-pop .24s ease;
+  }
+}
+
+@keyframes v46-added-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(.985); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 1120px) {
+  .footer-column:last-child {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .premium-footer-main {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .footer-about {
+    grid-column: 1 / -1;
+  }
+
+  .footer-payment-row-simple {
+    padding-top: 18px;
+    padding-bottom: 18px;
+  }
+
+  .footer-bottom-simple {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 480px) {
+  .premium-footer-main {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .footer-about {
+    grid-column: auto;
   }
 }

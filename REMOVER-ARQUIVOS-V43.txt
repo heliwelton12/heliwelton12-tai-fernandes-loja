@@ -1,0 +1,18 @@
+V43 — ARQUIVOS ANTIGOS/REDUNDANTES QUE PODEM SER REMOVIDOS
+
+Todos os arquivos abaixo deixaram de ser referenciados pelo código atual.
+Apague somente estes caminhos:
+
+public/hero-modelo.png
+public/logo-header.png
+public/products/lingerie-01.jpeg
+public/products/lingerie-02.jpeg
+public/products/lingerie-03.jpeg
+public/products/lingerie-04.png
+public/products/sexshop-01.jpeg
+public/products/sexshop-02.jpeg
+public/products/sexshop-03.jpeg
+public/products/sexshop-04.jpeg
+
+NÃO apague os arquivos .webp correspondentes.
+NÃO apague logo-tai-fernandes.png nesta etapa.

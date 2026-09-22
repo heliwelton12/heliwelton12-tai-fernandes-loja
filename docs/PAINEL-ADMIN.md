@@ -161,6 +161,31 @@ Ocultar não exclui:
 
 Ao ocultar, a categoria deixa de aparecer para o público e pode ser reativada pelo mesmo card no painel.
 
+
+### Editar nome e descrição
+
+A V46 adiciona edição direta da categoria em `Loja → Imagens da página inicial`.
+
+Podem ser alterados:
+
+- nome visível;
+- descrição curta exibida nos cards da home.
+
+O `slug` não é alterado ao renomear. Ele funciona como identificador estável para regras especiais, evitando que uma mudança de nome desative:
+
+- confirmação 18+ da categoria cujo slug é `sex-shop`;
+- regras de público/tamanho da categoria cujo slug é `pijamas`.
+
+### Excluir categoria
+
+A exclusão é protegida:
+
+- categoria com um ou mais produtos não pode ser apagada;
+- a administradora recebe orientação para mover/excluir os produtos primeiro;
+- a loja precisa manter pelo menos uma categoria;
+- uma categoria vazia exige confirmação antes da exclusão;
+- quando existir capa personalizada, o painel tenta limpar também o arquivo correspondente do Storage.
+
 ### Capas
 
 A administradora pode:

@@ -67,6 +67,123 @@ Este arquivo diferencia o que já foi validado do que ainda precisa passar pela 
 - ✅ Exclusão da cópia não afetou o original.
 - ✅ V42 aprovada pelo usuário em 22/09/2026.
 
+## V43 — SEO e preparação pública
+
+### Implementado
+
+- ✅ favicon e ícones de aplicativo gerados;
+- ✅ Open Graph 1200 × 630 gerado;
+- ✅ meta title e meta description revisados;
+- ✅ tags Open Graph/Twitter adicionadas;
+- ✅ `robots.txt` criado;
+- ✅ `sitemap.xml` criado;
+- ✅ `/admin` marcado com `noindex` em runtime e bloqueado no `robots.txt`;
+- ✅ fontes migradas de `@import` para `preconnect` + `link`;
+- ✅ logo do header convertida para WebP otimizado;
+- ✅ inventário de arquivos antigos a remover criado;
+- ✅ `site.webmanifest` validado como JSON;
+- ✅ `sitemap.xml` validado como XML.
+
+### Validação manual ainda necessária
+
+- ⏳ abrir a home e confirmar que a logo continua idêntica visualmente;
+- ⏳ confirmar favicon na aba do navegador;
+- ⏳ abrir `/og-image.jpg` e conferir a arte;
+- ⏳ abrir `/robots.txt`;
+- ⏳ abrir `/sitemap.xml`;
+- ⏳ confirmar que `/admin` continua funcionando normalmente;
+- ⏳ executar `npm run build`;
+- ⏳ executar `npm run preview -- --host`;
+- ⏳ trocar as URLs absolutas para o domínio definitivo antes do lançamento.
+
+## V44 — Auditoria de segurança
+
+| Área | Cenário | Ambiente | Status | Observação |
+|---|---|---|---|---|
+| Banco | RLS nas 6 tabelas principais | Supabase / produção | ✅ | Todas retornaram `rls_enabled = true`. |
+| Banco | Policies públicas e administrativas | Supabase / produção | ✅ | Leitura pública limitada; escrita administrativa usa `is_admin()`. |
+| Banco | Grants `anon` / `authenticated` | Supabase / produção | ✅ | `anon` somente com SELECT necessário; escrita depende de RLS. |
+| Auth | Estrutura de `admins` | Supabase / produção | ✅ | Apenas `user_id` e `created_at`; nenhuma senha própria. |
+| Auth | Função `is_admin()` | Supabase / produção | ✅ | `STABLE`, `SECURITY DEFINER`, `search_path=''`, `auth.uid()`. |
+| Storage | Policies do bucket `product-media` | Supabase / produção | ✅ | Leitura pública; INSERT/UPDATE/DELETE exigem admin. |
+| Auth | Logout e bloqueio do `/admin` | Navegador | ✅ | Painel volta a exigir login. |
+| Auth | E-mail/senha inválidos | Navegador | ✅ | Mensagem genérica, sem revelar existência da conta. |
+| Frontend | Dados persistidos localmente | Código / navegador | ✅ | Sem senha e sem dados de cartão. |
+| Frontend | Segredos no cliente | Código | ✅ | Sem `service_role` ou senha do banco; `.env.local` ignorado. |
+| Admin | Flash `Usuário sem permissão` | Localhost + Supabase | ✅ | Correção aprovada; login válido não exibe mais o aviso temporário. |
+| Storage | Limite de 25 MB e MIME types | Supabase + localhost | ✅ | Hardening aplicado e upload normal aprovado após a migração. |
+
+### Resultado da V44
+
+- ✅ `v44_security_hardening.sql` aplicado.
+- ✅ `PUBLIC` e `anon` removidos do `EXECUTE` direto de `is_admin()`.
+- ✅ login administrativo válido aprovado sem flash de permissão.
+- ✅ logout e bloqueio do painel aprovados.
+- ✅ upload de mídia aprovado após o hardening.
+- ✅ edição de produto aprovada após o hardening.
+- ✅ V44 aprovada pelo usuário em 22/09/2026.
+
+## V45 — Pré-lançamento, privacidade e acabamento
+
+### Implementado
+
+- ✅ rota `/privacidade`;
+- ✅ ação `Limpar nome e WhatsApp` em Meus dados;
+- ✅ remoção de `tf-profile` quando vazio;
+- ✅ limites de tamanho nos campos principais do checkout;
+- ✅ rota 404 interna para caminhos desconhecidos;
+- ✅ `llms.txt`;
+- ✅ JSON-LD `Store`;
+- ✅ sitemap com página de privacidade;
+- ✅ `store_settings` sem `select('*')` no frontend;
+- ✅ headers preparados em `public/_headers`;
+- ✅ animações leves sem dependência adicional;
+- ✅ `prefers-reduced-motion`;
+- ✅ código atual varrido por padrões de segredo;
+- ✅ histórico remoto atual do Git (8 commits) revisado sem `.env.local` commitido nem segredo administrativo encontrado.
+
+### Validação local concluída
+
+- ✅ `/privacidade`, 404, home e admin funcionando no ambiente local;
+- ✅ ação `Limpar nome e WhatsApp` implementada e fluxo local conferido;
+- ✅ `npm audit` executado sem bloqueio reportado;
+- ✅ `npm run build` concluído;
+- ✅ `npm run preview -- --host` concluído e home/admin conferidos no build de produção.
+
+### Ainda pendente para publicação
+
+- ⏳ validar CSP/headers no deploy do Cloudflare;
+- ⏳ executar Lighthouse/PageSpeed;
+- ⏳ atualizar URLs temporárias quando o domínio final for definido.
+
+
+## V46 — Acabamento final de experiência
+
+### Implementado
+
+- ✅ rodapé simplificado;
+- ✅ modal e compra rápida permanecem abertos após adicionar à sacola;
+- ✅ feedback `✓ Adicionado`;
+- ✅ criação/edição de descrição curta de categoria;
+- ✅ edição de nome da categoria;
+- ✅ exclusão protegida de categorias com produtos;
+- ✅ última categoria não pode ser apagada;
+- ✅ regras especiais de Pijamas/Sex Shop desacopladas do nome visível e ligadas ao `slug`.
+
+### Pendente de validação
+
+- ⏳ executar `v46_category_editing.sql`;
+- ⏳ editar nome de uma categoria e confirmar atualização na vitrine;
+- ⏳ editar descrição curta e confirmar atualização no card;
+- ⏳ confirmar que renomear Pijamas/Sex Shop não remove as regras especiais;
+- ⏳ tentar excluir categoria com produto e confirmar bloqueio;
+- ⏳ criar uma categoria vazia de teste, excluir e confirmar remoção;
+- ⏳ abrir Espiar, adicionar quantidade > 1 e confirmar que o produto permanece aberto;
+- ⏳ adicionar novamente o mesmo produto/variação e conferir quantidade na sacola;
+- ⏳ testar compra rápida sem fechamento automático;
+- ⏳ conferir rodapé no desktop e celular;
+- ⏳ repetir `npm run build` após aprovação.
+
 ## Regressão final obrigatória antes da v1.0.0
 
 ### Loja pública
@@ -146,12 +263,17 @@ Este arquivo diferencia o que já foi validado do que ainda precisa passar pela 
 - ⏳ links de Instagram e WhatsApp;
 - ⏳ rota `/admin` aberta diretamente;
 - ⏳ rota inexistente/404;
+- ⏳ rota `/privacidade`;
+- ⏳ botão Limpar nome e WhatsApp;
+- ⏳ `llms.txt`;
+- ⏳ JSON-LD;
 - ⏳ favicon;
 - ⏳ Open Graph;
 - ⏳ `robots.txt`;
 - ⏳ `sitemap.xml`;
 - ⏳ PageSpeed/Lighthouse;
-- ⏳ headers de segurança;
+- ⏳ headers de segurança/CSP no ambiente publicado;
+- ⏳ `npm audit`;
 - ⏳ deploy no Cloudflare Pages;
 - ⏳ teste final no domínio de produção.
 

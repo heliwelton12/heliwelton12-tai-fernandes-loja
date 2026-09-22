@@ -1,0 +1,13 @@
+V44 — AUDITORIA DE SEGURANÇA
+
+1. Copie/mescle estes arquivos no projeto.
+2. NÃO faça git push.
+3. Abra Supabase > SQL Editor.
+4. Selecione Role: Postgres.
+5. Execute SOMENTE supabase/v44_security_audit.sql.
+6. O script é somente leitura e não altera seu banco.
+7. Envie os resultados (prints ou copie as tabelas retornadas) para revisão.
+8. Não rode schema.sql novamente.
+9. Não altere policies manualmente antes da análise.
+
+Depois do inventário, faremos os testes funcionais: visitante, sessão/logout, login inválido, admin e Storage.

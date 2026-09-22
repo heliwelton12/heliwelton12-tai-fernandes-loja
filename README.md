@@ -2,7 +2,7 @@
 
 Loja virtual responsiva para **Tai Fernandes Moda Íntima**, com catálogo administrável, favoritos, sacola, checkout e finalização de pedido pelo WhatsApp.
 
-> **Estado atual:** V42 — funções finais do painel aprovadas em localhost em 22/09/2026. Próxima etapa: V43 — SEO e preparação pública.
+> **Estado atual:** V46 — acabamento final de experiência implementado localmente em 22/09/2026. V45 está aprovada localmente com `npm audit`, build e preview concluídos; V46 aguarda migração/testes antes da etapa Lighthouse e publicação.
 
 ## Tecnologias
 
@@ -32,7 +32,7 @@ Loja virtual responsiva para **Tai Fernandes Moda Íntima**, com catálogo admin
 - seleção de tamanho e cor quando cadastrados;
 - controle de quantidade;
 - favoritos persistidos no navegador;
-- dados do cliente persistidos localmente;
+- dados do cliente persistidos localmente, com opção de apagar nome/WhatsApp;
 - sacola persistida no navegador;
 - checkout com Pix, Cartão e Dinheiro;
 - retirada ou entrega conforme configuração da loja;
@@ -41,7 +41,10 @@ Loja virtual responsiva para **Tai Fernandes Moda Íntima**, com catálogo admin
 - confirmação 18+ para a categoria Sex Shop;
 - indicação de produto esgotado;
 - produtos demonstrativos ocultos automaticamente em produção;
-- acesso rápido ao painel quando uma administradora já está autenticada.
+- acesso rápido ao painel quando uma administradora já está autenticada;
+- Política de Privacidade em `/privacidade`;
+- página 404 própria para rotas inexistentes;
+- animações sutis com respeito a `prefers-reduced-motion`.
 
 ### Painel administrativo
 
@@ -61,7 +64,9 @@ Disponível em `/admin`.
 - no mobile, apenas uma categoria do catálogo fica aberta por vez;
 - formulário e upload de mídia refinados para iPhone/Android;
 - busca e filtro de produtos;
-- criação de categorias;
+- criação de categorias com descrição curta;
+- edição de nome e descrição das categorias;
+- exclusão segura apenas de categorias vazias;
 - capa personalizada das categorias;
 - ordenação das categorias;
 - ocultar/exibir categorias sem apagar seus produtos;
@@ -74,7 +79,9 @@ Disponível em `/admin`.
 src/
 ├── App.jsx                  # Loja pública
 ├── AdminApp.jsx             # Painel administrativo
-├── main.jsx                 # Entrada e seleção / ou /admin
+├── main.jsx                 # Entrada e seleção das rotas públicas/admin
+├── PrivacyPage.jsx          # Política de Privacidade
+├── NotFoundPage.jsx         # Página 404
 ├── styles.css               # Estilos da loja
 ├── admin.css                # Estilos do painel
 └── lib/
@@ -88,6 +95,9 @@ supabase/
 ├── store_settings.sql
 ├── category_covers.sql
 ├── v42_category_visibility.sql
+├── v44_security_audit.sql
+├── v44_security_hardening.sql
+├── v46_category_editing.sql
 └── v25_admin_display_name.sql  # histórico; não é dependência do painel atual
 
 docs/
@@ -95,6 +105,10 @@ docs/
 ├── BANCO-DE-DADOS.md
 ├── PAINEL-ADMIN.md
 ├── FLUXO-DE-COMPRA.md
+├── PRIVACIDADE.md
+├── SEO.md
+├── SEGURANCA.md
+├── CHECKLIST-PRE-LANCAMENTO.md
 └── DEPLOY.md
 ```
 
@@ -160,6 +174,9 @@ O navegador utiliza `localStorage` para dados que não precisam de conta:
 - [docs/PAINEL-ADMIN.md](docs/PAINEL-ADMIN.md) — funcionamento do painel.
 - [docs/FLUXO-DE-COMPRA.md](docs/FLUXO-DE-COMPRA.md) — jornada da cliente até o WhatsApp.
 - [docs/DEPLOY.md](docs/DEPLOY.md) — desenvolvimento local e publicação.
+- [docs/PRIVACIDADE.md](docs/PRIVACIDADE.md) — dados locais, WhatsApp e direitos da cliente.
+- [docs/SEO.md](docs/SEO.md) — metadados, favicon, Open Graph, sitemap e robots.
+- [docs/CHECKLIST-PRE-LANCAMENTO.md](docs/CHECKLIST-PRE-LANCAMENTO.md) — checklist consolidado dos vídeos e da revisão final.
 
 ## Regra de desenvolvimento atual
 
@@ -175,12 +192,8 @@ Enquanto a revisão final estiver em andamento:
 
 ## Próximas etapas
 
-1. V43 — SEO, favicon, Open Graph, sitemap, robots e otimização de imagens;
-2. V44 — auditoria de segurança (RLS, Auth, Storage, sessões e dados locais);
-3. V45 — pré-lançamento, 404, links, PageSpeed, build final e regressão;
-4. v1.0.0 e publicação no Cloudflare Pages;
-4. segurança, 404 e revisão geral de links;
-5. testes finais e PageSpeed;
-6. build de produção local;
-7. primeira versão estável `v1.0.0`;
-8. publicação definitiva no Cloudflare Pages.
+1. executar `supabase/v46_category_editing.sql` e validar a V46 em localhost;
+2. repetir `npm run build` após a aprovação da V46;
+3. executar Lighthouse/PageSpeed;
+4. definir a URL final do Cloudflare e atualizar canonical/OG/sitemap/llms;
+5. marcar `v1.0.0` e publicar no Cloudflare Pages.
