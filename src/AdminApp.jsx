@@ -91,6 +91,16 @@ function fileNameSafe(name) {
     .replace(/[^a-z0-9._-]+/g, '-')
 }
 
+function categorySlug(name) {
+  return name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || `categoria-${Date.now()}`
+}
+
 export default function AdminApp() {
   const [session, setSession] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
@@ -117,8 +127,13 @@ export default function AdminApp() {
   const [categoryCoverDrafts, setCategoryCoverDrafts] = useState({})
   const [categoryCoverSaving, setCategoryCoverSaving] = useState({})
   const [categoryCoverMessage, setCategoryCoverMessage] = useState('')
+  const [newCategoryName, setNewCategoryName] = useState('')
+  const [categoryCreating, setCategoryCreating] = useState(false)
 
   const editing = Boolean(form.id)
+  const selectedFormCategory = categories.find((category) => category.id === form.categoryId)
+  const isSexShopForm = selectedFormCategory?.name === 'Sex Shop'
+  const isPajamaForm = selectedFormCategory?.name === 'Pijamas'
 
   useEffect(() => {
     if (!supabaseConfigured || !supabase) {
@@ -281,6 +296,56 @@ export default function AdminApp() {
         ...current,
         categoryId: current.categoryId || data?.[0]?.id || '',
       }))
+    }
+  }
+
+  async function createCategory(event) {
+    event.preventDefault()
+
+    const name = newCategoryName.trim()
+    if (!name) {
+      setCategoryCoverMessage('Digite o nome da nova categoria.')
+      return
+    }
+
+    if (categories.some((category) => category.name.toLowerCase() === name.toLowerCase())) {
+      setCategoryCoverMessage('Essa categoria já existe.')
+      return
+    }
+
+    setCategoryCreating(true)
+    setCategoryCoverMessage('')
+
+    try {
+      const baseSlug = categorySlug(name)
+      const usedSlugs = new Set(categories.map((category) => category.slug).filter(Boolean))
+      let slug = baseSlug
+      let suffix = 2
+
+      while (usedSlugs.has(slug)) {
+        slug = `${baseSlug}-${suffix}`
+        suffix += 1
+      }
+
+      const nextSortOrder = categories.length
+        ? Math.max(...categories.map((category) => Number(category.sort_order) || 0)) + 1
+        : 0
+
+      const { data, error } = await supabase
+        .from('categories')
+        .insert({ name, slug, sort_order: nextSortOrder })
+        .select('id, name, slug, sort_order, cover_url, cover_storage_path')
+        .single()
+
+      if (error) throw error
+
+      setNewCategoryName('')
+      await loadCategories()
+      setCategoryCoverMessage(`Categoria ${data.name} adicionada. Agora você já pode escolher a capa dela.`)
+    } catch (error) {
+      setCategoryCoverMessage(`Não foi possível adicionar a categoria: ${error.message}`)
+    } finally {
+      setCategoryCreating(false)
     }
   }
 
@@ -586,7 +651,8 @@ export default function AdminApp() {
   }
 
   async function syncVariants(productId) {
-    const sizes = uniqueList(form.sizes)
+    const selectedCategory = categories.find((category) => category.id === form.categoryId)
+    const sizes = selectedCategory?.name === 'Sex Shop' ? [] : uniqueList(form.sizes)
     const colors = uniqueList(form.colors)
 
     const { error: deleteError } = await supabase
@@ -982,7 +1048,16 @@ export default function AdminApp() {
                 <span>Categoria</span>
                 <select
                   value={form.categoryId}
-                  onChange={(event) => setForm((current) => ({ ...current, categoryId: event.target.value }))}
+                  onChange={(event) => {
+                    const categoryId = event.target.value
+                    const categoryName = categories.find((category) => category.id === categoryId)?.name
+                    setForm((current) => ({
+                      ...current,
+                      categoryId,
+                      sizes: categoryName === 'Sex Shop' ? '' : current.sizes,
+                      audience: categoryName === 'Pijamas' ? current.audience : '',
+                    }))
+                  }}
                   required
                 >
                   {categories.map((category) => (
@@ -1014,28 +1089,32 @@ export default function AdminApp() {
                 </select>
               </label>
 
-              <label className="admin-field">
-                <span>Público do pijama</span>
-                <select
-                  value={form.audience}
-                  onChange={(event) => setForm((current) => ({ ...current, audience: event.target.value }))}
-                >
-                  <option value="">Não se aplica</option>
-                  <option value="Feminino">Feminino</option>
-                  <option value="Masculino">Masculino</option>
-                  <option value="Infantil">Infantil</option>
-                </select>
-              </label>
+              {isPajamaForm && (
+                <label className="admin-field">
+                  <span>Público do pijama</span>
+                  <select
+                    value={form.audience}
+                    onChange={(event) => setForm((current) => ({ ...current, audience: event.target.value }))}
+                  >
+                    <option value="">Selecione</option>
+                    <option value="Feminino">Feminino</option>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Infantil">Infantil</option>
+                  </select>
+                </label>
+              )}
 
-              <label className="admin-field admin-field-wide">
-                <span>Tamanhos</span>
-                <input
-                  value={form.sizes}
-                  onChange={(event) => setForm((current) => ({ ...current, sizes: event.target.value }))}
-                  placeholder="P, M, G, GG"
-                />
-                <small>Separe por vírgulas.</small>
-              </label>
+              {!isSexShopForm && (
+                <label className="admin-field admin-field-wide">
+                  <span>Tamanhos</span>
+                  <input
+                    value={form.sizes}
+                    onChange={(event) => setForm((current) => ({ ...current, sizes: event.target.value }))}
+                    placeholder="P, M, G, GG"
+                  />
+                  <small>Separe por vírgulas. Se o produto não tiver tamanho, deixe em branco.</small>
+                </label>
+              )}
 
               <label className="admin-field admin-field-wide">
                 <span>Cores</span>
@@ -1489,7 +1568,7 @@ export default function AdminApp() {
                 <p className="admin-kicker">CAPAS DAS CATEGORIAS</p>
                 <h3>Imagens da página inicial</h3>
                 <p>
-                  Troque as capas de Lingeries, Conjuntos, Camisolas, Pijamas e Sex Shop sem editar o código.
+                  Adicione novas categorias e troque a capa de qualquer uma delas sem editar o código.
                 </p>
               </div>
             </div>
@@ -1497,6 +1576,21 @@ export default function AdminApp() {
             {categoryCoverMessage && (
               <div className="admin-message">{categoryCoverMessage}</div>
             )}
+
+            <form className="admin-add-category" onSubmit={createCategory}>
+              <label className="admin-field">
+                <span>Nova categoria</span>
+                <input
+                  value={newCategoryName}
+                  onChange={(event) => setNewCategoryName(event.target.value)}
+                  placeholder="Ex.: Robes, Meias, Plus Size..."
+                  maxLength="60"
+                />
+              </label>
+              <button type="submit" disabled={categoryCreating || !newCategoryName.trim()}>
+                {categoryCreating ? 'Adicionando…' : 'Adicionar categoria'}
+              </button>
+            </form>
 
             <div className="admin-category-cover-grid">
               {categories.map((category) => {

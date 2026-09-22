@@ -6,14 +6,6 @@ import { DEFAULT_STORE_SETTINGS, normalizeWhatsapp, useStoreSettings } from './l
 const SHOW_DEMO_PRODUCTS =
   import.meta.env.DEV || import.meta.env.VITE_SHOW_DEMO_PRODUCTS === 'true'
 
-const menuItems = [
-  { label: 'Lingeries', id: 'categorias' },
-  { label: 'Conjuntos', id: 'categorias' },
-  { label: 'Camisolas', id: 'categorias' },
-  { label: 'Pijamas', id: 'categorias' },
-  { label: 'Sex Shop', id: 'categorias' },
-]
-
 const demoProducts = [
   {
     id: 'demo-conjunto-01',
@@ -432,8 +424,9 @@ function App() {
       const merged = (data || []).map((row) => {
         const fallback = defaultsByName.get(row.name) || {
           name: row.name,
-          subtitle: '',
+          subtitle: 'Confira nossos produtos',
           tone: 'rose',
+          adult: row.name === 'Sex Shop',
         }
 
         return {
@@ -641,7 +634,7 @@ function App() {
     return categories
       .filter((category) => category.name.toLowerCase().includes(query))
       .slice(0, 3)
-  }, [headerSearch])
+  }, [headerSearch, categories])
 
   const favoriteProducts = useMemo(() => {
     return customerCatalogProducts.filter((product) => favorites.includes(product.id))
@@ -734,15 +727,20 @@ function App() {
     }
   }
 
+  function hasSizeOptions(product) {
+    return product?.category !== 'Sex Shop' && Array.isArray(product?.sizes) && product.sizes.length > 0
+  }
+
+  function hasColorOptions(product) {
+    return Array.isArray(product?.colors) && product.colors.length > 0
+  }
+
   function getSizeOptions(product) {
-    if (product.sizes?.length) return product.sizes
-    if (product.category === 'Sex Shop') return ['Não se aplica']
-    return ['A definir']
+    return hasSizeOptions(product) ? product.sizes : []
   }
 
   function getColorOptions(product) {
-    if (product.colors?.length) return product.colors
-    return ['A definir']
+    return hasColorOptions(product) ? product.colors : []
   }
 
   function isProductSoldOut(product) {
@@ -799,16 +797,16 @@ function App() {
     }
 
     setQuickBuyId((current) => (current === product.id ? null : product.id))
-    setSelectedSize(getSizeOptions(product)[0])
-    setSelectedColor(getColorOptions(product)[0])
+    setSelectedSize(getSizeOptions(product)[0] || '')
+    setSelectedColor(getColorOptions(product)[0] || '')
   }
 
   function openPreview(product) {
     setPreviewProduct(product)
     setPreviewMediaIndex(0)
     setPreviewQuantity(1)
-    setSelectedSize(getSizeOptions(product)[0])
-    setSelectedColor(getColorOptions(product)[0])
+    setSelectedSize(getSizeOptions(product)[0] || '')
+    setSelectedColor(getColorOptions(product)[0] || '')
   }
 
   function addToCart(product, quantity = 1) {
@@ -817,10 +815,10 @@ function App() {
       return
     }
 
-    const size = selectedSize || getSizeOptions(product)[0]
-    const color = selectedColor || getColorOptions(product)[0]
+    const size = hasSizeOptions(product) ? (selectedSize || getSizeOptions(product)[0] || '') : ''
+    const color = hasColorOptions(product) ? (selectedColor || getColorOptions(product)[0] || '') : ''
     const safeQuantity = Math.max(1, Number(quantity) || 1)
-    const cartKey = `${product.id}-${size}-${color}`
+    const cartKey = `${product.id}-${size || 'sem-tamanho'}-${color || 'sem-cor'}`
 
     setCart((current) => {
       const existing = current.find((item) => item.cartKey === cartKey)
@@ -1135,9 +1133,9 @@ function App() {
             <button onClick={() => { setFavoritesOpen(true); setMenuOpen(false) }}>
               Favoritos {favorites.length ? `(${favorites.length})` : ''}
             </button>
-            {menuItems.map((item) => (
-              <button key={item.label} onClick={() => openCategory(item.label)}>
-                {item.label}
+            {categories.map((category) => (
+              <button key={category.id || category.name} onClick={() => openCategory(category.name)}>
+                {category.name}
               </button>
             ))}
             <a href={instagramUrl} target="_blank" rel="noreferrer">Instagram</a>
@@ -1278,13 +1276,13 @@ function App() {
 
         <div className="nav-row desktop-only">
           <div className="nav-links">
-            {menuItems.map((item) => (
+            {categories.map((category) => (
               <button
-                key={item.label}
-                className={activeCategory === item.label ? 'active' : ''}
-                onClick={() => openCategory(item.label)}
+                key={category.id || category.name}
+                className={activeCategory === category.name ? 'active' : ''}
+                onClick={() => openCategory(category.name)}
               >
-                {item.label}
+                {category.name}
               </button>
             ))}
           </div>
@@ -1434,29 +1432,33 @@ function App() {
                         ×
                       </button>
 
-                      <label>
-                        <span>Tamanho</span>
-                        <select
-                          value={selectedSize}
-                          onChange={(event) => setSelectedSize(event.target.value)}
-                        >
-                          {getSizeOptions(product).map((size) => (
-                            <option value={size} key={size}>{size}</option>
-                          ))}
-                        </select>
-                      </label>
+                      {hasSizeOptions(product) && (
+                        <label>
+                          <span>Tamanho</span>
+                          <select
+                            value={selectedSize}
+                            onChange={(event) => setSelectedSize(event.target.value)}
+                          >
+                            {getSizeOptions(product).map((size) => (
+                              <option value={size} key={size}>{size}</option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
 
-                      <label>
-                        <span>Cor</span>
-                        <select
-                          value={selectedColor}
-                          onChange={(event) => setSelectedColor(event.target.value)}
-                        >
-                          {getColorOptions(product).map((color) => (
-                            <option value={color} key={color}>{color}</option>
-                          ))}
-                        </select>
-                      </label>
+                      {hasColorOptions(product) && (
+                        <label>
+                          <span>Cor</span>
+                          <select
+                            value={selectedColor}
+                            onChange={(event) => setSelectedColor(event.target.value)}
+                          >
+                            {getColorOptions(product).map((color) => (
+                              <option value={color} key={color}>{color}</option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
 
                       <button className="home-quick-buy-add" onClick={() => addToCart(product)}>
                         Adicionar à sacola
@@ -1612,29 +1614,33 @@ function App() {
                           ×
                         </button>
 
-                        <label>
-                          <span>Tamanho</span>
-                          <select
-                            value={selectedSize}
-                            onChange={(event) => setSelectedSize(event.target.value)}
-                          >
-                            {getSizeOptions(product).map((size) => (
-                              <option value={size} key={size}>{size}</option>
-                            ))}
-                          </select>
-                        </label>
+                        {hasSizeOptions(product) && (
+                          <label>
+                            <span>Tamanho</span>
+                            <select
+                              value={selectedSize}
+                              onChange={(event) => setSelectedSize(event.target.value)}
+                            >
+                              {getSizeOptions(product).map((size) => (
+                                <option value={size} key={size}>{size}</option>
+                              ))}
+                            </select>
+                          </label>
+                        )}
 
-                        <label>
-                          <span>Cor</span>
-                          <select
-                            value={selectedColor}
-                            onChange={(event) => setSelectedColor(event.target.value)}
-                          >
-                            {getColorOptions(product).map((color) => (
-                              <option value={color} key={color}>{color}</option>
-                            ))}
-                          </select>
-                        </label>
+                        {hasColorOptions(product) && (
+                          <label>
+                            <span>Cor</span>
+                            <select
+                              value={selectedColor}
+                              onChange={(event) => setSelectedColor(event.target.value)}
+                            >
+                              {getColorOptions(product).map((color) => (
+                                <option value={color} key={color}>{color}</option>
+                              ))}
+                            </select>
+                          </label>
+                        )}
 
                         <button className="quick-buy-add" onClick={() => addToCart(product)}>
                           Adicionar à sacola
@@ -2163,34 +2169,44 @@ function App() {
               )}
 
               <p className="product-modal-description">
-                Escolha as opções disponíveis, defina a quantidade e adicione à sacola.
+                {previewProduct.description || (
+                  hasSizeOptions(previewProduct) || hasColorOptions(previewProduct)
+                    ? 'Escolha as opções disponíveis, defina a quantidade e adicione à sacola.'
+                    : 'Defina a quantidade e adicione à sacola.'
+                )}
               </p>
 
-              <div className="product-modal-options">
-                <label>
-                  <span>Tamanho</span>
-                  <select
-                    value={selectedSize}
-                    onChange={(event) => setSelectedSize(event.target.value)}
-                  >
-                    {getSizeOptions(previewProduct).map((size) => (
-                      <option value={size} key={size}>{size}</option>
-                    ))}
-                  </select>
-                </label>
+              {(hasSizeOptions(previewProduct) || hasColorOptions(previewProduct)) && (
+                <div className="product-modal-options">
+                  {hasSizeOptions(previewProduct) && (
+                    <label>
+                      <span>Tamanho</span>
+                      <select
+                        value={selectedSize}
+                        onChange={(event) => setSelectedSize(event.target.value)}
+                      >
+                        {getSizeOptions(previewProduct).map((size) => (
+                          <option value={size} key={size}>{size}</option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
 
-                <label>
-                  <span>Cor</span>
-                  <select
-                    value={selectedColor}
-                    onChange={(event) => setSelectedColor(event.target.value)}
-                  >
-                    {getColorOptions(previewProduct).map((color) => (
-                      <option value={color} key={color}>{color}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
+                  {hasColorOptions(previewProduct) && (
+                    <label>
+                      <span>Cor</span>
+                      <select
+                        value={selectedColor}
+                        onChange={(event) => setSelectedColor(event.target.value)}
+                      >
+                        {getColorOptions(previewProduct).map((color) => (
+                          <option value={color} key={color}>{color}</option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+                </div>
+              )}
 
               <div className="modal-purchase-row">
                 <div className="modal-quantity">
@@ -2226,18 +2242,6 @@ function App() {
                 {isProductSoldOut(previewProduct) ? 'Produto esgotado' : 'Adicionar à sacola'}
               </button>
 
-              {(selectedSize === 'A definir' || selectedColor === 'A definir') && (
-                <small className="quick-buy-note">
-                  Essas opções serão preenchidas quando a loja cadastrar tamanhos e cores.
-                </small>
-              )}
-
-              <div className="media-ready-note">
-                <Icon name="play" size={18} />
-                <span>
-                  Este produto já está preparado para receber várias fotos e vídeo no cadastro.
-                </span>
-              </div>
             </div>
           </div>
         </div>
@@ -2267,9 +2271,9 @@ function App() {
           <div className="footer-column">
             <h3>Navegação</h3>
             <button onClick={goHome}>Início</button>
-            {menuItems.map((item) => (
-              <button key={`footer-${item.label}`} onClick={() => openCategory(item.label)}>
-                {item.label}
+            {categories.map((category) => (
+              <button key={`footer-${category.id || category.name}`} onClick={() => openCategory(category.name)}>
+                {category.name}
               </button>
             ))}
           </div>
