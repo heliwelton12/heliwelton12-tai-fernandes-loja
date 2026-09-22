@@ -1427,3 +1427,217 @@ textarea {
     display: none;
   }
 }
+
+/* v41 — revisão final do painel administrativo no celular */
+@media (max-width: 650px) {
+  /* Dá espaço real para a ação fixa sem esconder os últimos campos. */
+  .admin-editor {
+    padding-bottom: calc(108px + env(safe-area-inset-bottom));
+  }
+
+  .product-admin-form {
+    gap: 18px;
+  }
+
+  .product-admin-form .admin-field textarea {
+    min-height: 96px;
+  }
+
+  /* O seletor nativo fica invisível; o próprio card continua sendo o alvo de toque. */
+  .admin-upload {
+    position: relative;
+    min-height: 96px;
+    padding: 16px 14px;
+  }
+
+  .admin-upload strong {
+    font-size: 15px;
+  }
+
+  .admin-upload span {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .admin-upload input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    opacity: 0;
+  }
+
+  /* A barra continua acessível, mas ocupa menos da tela e respeita a safe area. */
+  .admin-mobile-savebar {
+    left: 3.5vw;
+    right: 3.5vw;
+    bottom: calc(7px + env(safe-area-inset-bottom));
+    padding: 0;
+    border-top: 0;
+    background: transparent;
+    backdrop-filter: none;
+    pointer-events: none;
+  }
+
+  .admin-mobile-savebar button {
+    min-height: 47px;
+    pointer-events: auto;
+    box-shadow: 0 12px 30px rgba(190,83,111,.23);
+  }
+
+  /* Catálogo mais compacto sem reduzir a área de toque. */
+  .admin-category-groups {
+    gap: 10px;
+  }
+
+  .admin-category-header {
+    min-height: 58px;
+    padding: 11px 14px;
+  }
+
+  .admin-category-title {
+    gap: 4px;
+  }
+
+  .admin-category-title strong {
+    font-size: 19px;
+  }
+
+  .admin-category-title small {
+    padding: 3px 7px;
+  }
+
+  .admin-product-actions {
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .admin-product-actions button {
+    min-height: 36px;
+    padding: 0 12px;
+  }
+
+  /* Um pouco mais de respiro ao final de Loja/categorias no Safari móvel. */
+  .admin-settings {
+    padding-bottom: calc(28px + env(safe-area-inset-bottom));
+  }
+
+  .admin-settings-form {
+    gap: 15px;
+  }
+
+  .admin-settings-block {
+    gap: 11px;
+    padding: 15px;
+  }
+
+  .admin-category-covers {
+    margin-bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+}
+
+/* v42 — visibilidade de categorias e duplicação de produtos */
+.admin-product-actions button:disabled {
+  opacity: .5;
+  cursor: wait;
+}
+
+.admin-product-actions .duplicate {
+  border-color: #dcb7c2;
+  background: #fff8fa;
+  color: var(--admin-rose-dark, #9f3e59);
+}
+
+.admin-category-cover-card.is-hidden {
+  border-style: dashed;
+  background: #fbf7f8;
+}
+
+.admin-category-cover-card.is-hidden .admin-category-cover-preview img {
+  opacity: .72;
+}
+
+.admin-category-visibility {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--admin-line);
+  border-radius: 13px;
+  background: #fff;
+}
+
+.admin-category-visibility span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.admin-category-visibility span.is-visible {
+  background: #f7e8ed;
+  color: var(--admin-rose-dark, #9f3e59);
+}
+
+.admin-category-visibility span.is-hidden {
+  background: #eee9eb;
+  color: #76676b;
+}
+
+.admin-category-visibility button {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--admin-line);
+  border-radius: 999px;
+  background: #fffafb;
+  color: var(--admin-dark);
+  font: inherit;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-category-visibility button:hover:not(:disabled) {
+  border-color: #c55774;
+  background: #fff4f7;
+}
+
+.admin-category-visibility button:disabled {
+  opacity: .5;
+  cursor: wait;
+}
+
+@media (max-width: 650px) {
+  .admin-product-actions {
+    flex-wrap: wrap;
+  }
+
+  .admin-product-actions button {
+    flex: 1 1 auto;
+    min-width: 72px;
+  }
+
+  .admin-category-visibility {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-category-visibility span {
+    width: fit-content;
+  }
+
+  .admin-category-visibility button {
+    width: 100%;
+    min-height: 38px;
+  }
+}

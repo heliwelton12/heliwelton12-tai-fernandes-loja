@@ -380,6 +380,7 @@ function App() {
   const [needsChange, setNeedsChange] = useState(false)
   const [changeFor, setChangeFor] = useState('')
   const [orderNotes, setOrderNotes] = useState('')
+  const [checkoutError, setCheckoutError] = useState('')
   const [activeCategory, setActiveCategory] = useState(null)
   const [headerCompact, setHeaderCompact] = useState(false)
   const [adultGateOpen, setAdultGateOpen] = useState(false)
@@ -389,7 +390,9 @@ function App() {
   const [cartPulse, setCartPulse] = useState(false)
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [pajamaAudience, setPajamaAudience] = useState('Todos')
-  const [categories, setCategories] = useState(DEFAULT_CATEGORIES)
+  const [categories, setCategories] = useState(() =>
+    supabaseConfigured ? [] : DEFAULT_CATEGORIES
+  )
   const categoryTrackRef = useRef(null)
 
   const {
@@ -406,15 +409,26 @@ function App() {
     async function loadCategoryCovers() {
       if (!supabaseConfigured || !supabase) return
 
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('categories')
-        .select('id, name, slug, sort_order, cover_url, cover_storage_path')
+        .select('id, name, slug, sort_order, cover_url, cover_storage_path, is_visible')
         .order('sort_order')
+
+      if (error) {
+        const fallback = await supabase
+          .from('categories')
+          .select('id, name, slug, sort_order, cover_url, cover_storage_path')
+          .order('sort_order')
+
+        data = (fallback.data || []).map((category) => ({ ...category, is_visible: true }))
+        error = fallback.error
+      }
 
       if (!alive) return
 
       if (error) {
-        console.warn('Falha ao carregar capas das categorias; usando capas padrão.', error)
+        console.warn('Falha ao carregar categorias; usando categorias padrão.', error)
+        setCategories(DEFAULT_CATEGORIES)
         return
       }
 
@@ -422,7 +436,9 @@ function App() {
         DEFAULT_CATEGORIES.map((category) => [category.name, category])
       )
 
-      const merged = (data || []).map((row) => {
+      const merged = (data || [])
+        .filter((row) => row.is_visible !== false)
+        .map((row) => {
         const fallback = defaultsByName.get(row.name) || {
           name: row.name,
           subtitle: 'Confira nossos produtos',
@@ -440,7 +456,7 @@ function App() {
         }
       })
 
-      if (merged.length) setCategories(merged)
+      setCategories(merged)
     }
 
     loadCategoryCovers()
@@ -469,13 +485,18 @@ function App() {
     return options.length ? options : ['Retirada']
   }, [storeSettings.pickup_enabled, storeSettings.delivery_enabled])
 
-  const customerCatalogProducts = useMemo(
-    () =>
-      SHOW_DEMO_PRODUCTS
-        ? catalogProducts
-        : catalogProducts.filter((product) => !product.demo),
-    [catalogProducts]
+  const visibleCategoryNames = useMemo(
+    () => new Set(categories.map((category) => category.name)),
+    [categories]
   )
+
+  const customerCatalogProducts = useMemo(() => {
+    const source = SHOW_DEMO_PRODUCTS
+      ? catalogProducts
+      : catalogProducts.filter((product) => !product.demo)
+
+    return source.filter((product) => visibleCategoryNames.has(product.category))
+  }, [catalogProducts, visibleCategoryNames])
 
   useEffect(() => {
     localStorage.setItem('tf-cart', JSON.stringify(cart))
@@ -511,6 +532,21 @@ function App() {
       setFulfillment(fulfillmentOptions[0])
     }
   }, [fulfillmentOptions, fulfillment])
+
+  useEffect(() => {
+    if (!cartOpen && !previewProduct) return undefined
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [cartOpen, previewProduct])
+
+  useEffect(() => {
+    if (!cartOpen) setCheckoutError('')
+  }, [cartOpen])
 
 
   useEffect(() => {
@@ -898,14 +934,30 @@ function App() {
     setAddress((current) => ({ ...current, [field]: value }))
   }
 
+  function showCheckoutError(message, fieldId = '') {
+    setCheckoutError(message)
+
+    window.setTimeout(() => {
+      const target = fieldId ? document.getElementById(fieldId) : document.querySelector('.checkout-error')
+      if (!target) return
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      if (typeof target.focus === 'function') target.focus()
+    }, 60)
+  }
+
+  function clearCheckoutError() {
+    if (checkoutError) setCheckoutError('')
+  }
+
   function finishOrder() {
+    setCheckoutError('')
     if (!cart.length) {
-      window.alert('Sua sacola está vazia.')
+      showCheckoutError('Sua sacola está vazia.')
       return
     }
 
     if (!customerName.trim()) {
-      window.alert('Informe seu nome para finalizar o pedido.')
+      showCheckoutError('Informe seu nome para finalizar o pedido.', 'checkout-name')
       return
     }
 
@@ -913,12 +965,17 @@ function App() {
       fulfillment === 'Entrega' &&
       (!address.street.trim() || !address.number.trim() || !address.neighborhood.trim())
     ) {
-      window.alert('Preencha endereço, número e bairro para a entrega.')
+      const missingAddressField = !address.street.trim()
+        ? 'checkout-street'
+        : !address.number.trim()
+          ? 'checkout-number'
+          : 'checkout-neighborhood'
+      showCheckoutError('Preencha endereço, número e bairro para a entrega.', missingAddressField)
       return
     }
 
     if (paymentMethod === 'Dinheiro' && needsChange && !changeFor.trim()) {
-      window.alert('Informe o valor para o troco.')
+      showCheckoutError('Informe o valor para o troco.', 'checkout-change')
       return
     }
 
@@ -1886,11 +1943,16 @@ function App() {
 
       {cartOpen && (
         <div className="cart-backdrop" onClick={() => setCartOpen(false)}>
-          <aside className="cart-drawer" onClick={(event) => event.stopPropagation()}>
+          <aside className="cart-drawer" role="dialog" aria-modal="true" aria-label="Sacola e finalização do pedido" onClick={(event) => event.stopPropagation()}>
             <div className="cart-header">
               <div>
                 <p className="eyebrow">SEU PEDIDO</p>
                 <h2>Sacola</h2>
+                {!!cart.length && (
+                  <p className="cart-header-summary">
+                    {cartCount} {cartCount === 1 ? 'item' : 'itens'} · {formatBRL(cartTotal)}
+                  </p>
+                )}
               </div>
               <button
                 className="cart-close"
@@ -1948,9 +2010,9 @@ function App() {
 
                         <div className="cart-item-bottom">
                           <div className="quantity-control">
-                            <button onClick={() => changeQuantity(item.cartKey, -1)}>−</button>
+                            <button type="button" aria-label={`Diminuir quantidade de ${item.name}`} onClick={() => changeQuantity(item.cartKey, -1)}>−</button>
                             <span>{item.quantity}</span>
-                            <button onClick={() => changeQuantity(item.cartKey, 1)}>+</button>
+                            <button type="button" aria-label={`Aumentar quantidade de ${item.name}`} onClick={() => changeQuantity(item.cartKey, 1)}>+</button>
                           </div>
                           <strong>{formatBRL(item.price * item.quantity)}</strong>
                         </div>
@@ -1970,6 +2032,13 @@ function App() {
                     <strong>{formatBRL(cartTotal)}</strong>
                   </div>
 
+                  {checkoutError && (
+                    <div className="checkout-error" role="alert">
+                      <strong>Confira antes de enviar</strong>
+                      <span>{checkoutError}</span>
+                    </div>
+                  )}
+
                   <div className="checkout-info-box">
                     <strong>Antes de enviar</strong>
                     <span>{storeSettings.delivery_note}</span>
@@ -1979,10 +2048,16 @@ function App() {
                   <label className="checkout-field">
                     <span>Seu nome</span>
                     <input
+                      id="checkout-name"
                       type="text"
                       value={customerName}
-                      onChange={(event) => setCustomerName(event.target.value)}
+                      onChange={(event) => {
+                        setCustomerName(event.target.value)
+                        clearCheckoutError()
+                      }}
                       placeholder="Nome da cliente"
+                      autoComplete="name"
+                      enterKeyHint="next"
                     />
                   </label>
 
@@ -1991,8 +2066,14 @@ function App() {
                     <input
                       type="tel"
                       value={customerPhone}
-                      onChange={(event) => setCustomerPhone(event.target.value)}
+                      onChange={(event) => {
+                        setCustomerPhone(event.target.value)
+                        clearCheckoutError()
+                      }}
                       placeholder="(75) 99999-9999"
+                      autoComplete="tel"
+                      inputMode="tel"
+                      enterKeyHint="next"
                     />
                   </label>
 
@@ -2007,6 +2088,7 @@ function App() {
                           onClick={() => {
                             setPaymentMethod(method)
                             if (method !== 'Dinheiro') setNeedsChange(false)
+                            clearCheckoutError()
                           }}
                         >
                           {method}
@@ -2021,7 +2103,10 @@ function App() {
                         <input
                           type="checkbox"
                           checked={needsChange}
-                          onChange={(event) => setNeedsChange(event.target.checked)}
+                          onChange={(event) => {
+                            setNeedsChange(event.target.checked)
+                            clearCheckoutError()
+                          }}
                         />
                         <span>Precisa de troco?</span>
                       </label>
@@ -2030,10 +2115,16 @@ function App() {
                         <label className="checkout-field">
                           <span>Troco para quanto?</span>
                           <input
+                            id="checkout-change"
                             type="text"
                             value={changeFor}
-                            onChange={(event) => setChangeFor(event.target.value)}
+                            onChange={(event) => {
+                              setChangeFor(event.target.value)
+                              clearCheckoutError()
+                            }}
                             placeholder="Ex.: R$ 100,00"
+                            inputMode="decimal"
+                            enterKeyHint="done"
                           />
                         </label>
                       )}
@@ -2048,7 +2139,10 @@ function App() {
                           key={option}
                           type="button"
                           className={fulfillment === option ? 'active' : ''}
-                          onClick={() => setFulfillment(option)}
+                          onClick={() => {
+                            setFulfillment(option)
+                            clearCheckoutError()
+                          }}
                         >
                           {option}
                         </button>
@@ -2061,30 +2155,47 @@ function App() {
                       <label className="checkout-field full">
                         <span>Endereço</span>
                         <input
+                          id="checkout-street"
                           type="text"
                           value={address.street}
-                          onChange={(event) => updateAddress('street', event.target.value)}
+                          onChange={(event) => {
+                            updateAddress('street', event.target.value)
+                            clearCheckoutError()
+                          }}
                           placeholder="Rua / Avenida"
+                          autoComplete="street-address"
+                          enterKeyHint="next"
                         />
                       </label>
 
                       <label className="checkout-field">
                         <span>Número</span>
                         <input
+                          id="checkout-number"
                           type="text"
                           value={address.number}
-                          onChange={(event) => updateAddress('number', event.target.value)}
+                          onChange={(event) => {
+                            updateAddress('number', event.target.value)
+                            clearCheckoutError()
+                          }}
                           placeholder="Nº"
+                          inputMode="numeric"
+                          enterKeyHint="next"
                         />
                       </label>
 
                       <label className="checkout-field">
                         <span>Bairro</span>
                         <input
+                          id="checkout-neighborhood"
                           type="text"
                           value={address.neighborhood}
-                          onChange={(event) => updateAddress('neighborhood', event.target.value)}
+                          onChange={(event) => {
+                            updateAddress('neighborhood', event.target.value)
+                            clearCheckoutError()
+                          }}
                           placeholder="Bairro"
+                          enterKeyHint="next"
                         />
                       </label>
 
@@ -2093,7 +2204,10 @@ function App() {
                         <input
                           type="text"
                           value={address.complement}
-                          onChange={(event) => updateAddress('complement', event.target.value)}
+                          onChange={(event) => {
+                            updateAddress('complement', event.target.value)
+                            clearCheckoutError()
+                          }}
                           placeholder="Opcional"
                         />
                       </label>
@@ -2103,7 +2217,10 @@ function App() {
                         <input
                           type="text"
                           value={address.reference}
-                          onChange={(event) => updateAddress('reference', event.target.value)}
+                          onChange={(event) => {
+                            updateAddress('reference', event.target.value)
+                            clearCheckoutError()
+                          }}
                           placeholder="Opcional"
                         />
                       </label>
@@ -2114,7 +2231,10 @@ function App() {
                     <span>Observações</span>
                     <textarea
                       value={orderNotes}
-                      onChange={(event) => setOrderNotes(event.target.value)}
+                      onChange={(event) => {
+                        setOrderNotes(event.target.value)
+                        clearCheckoutError()
+                      }}
                       placeholder="Alguma observação sobre o pedido?"
                       rows="3"
                     />
@@ -2148,7 +2268,7 @@ function App() {
 
       {previewProduct && (
         <div className="product-modal-backdrop" onClick={() => setPreviewProduct(null)}>
-          <div className="product-modal product-modal-gallery" onClick={(event) => event.stopPropagation()}>
+          <div className="product-modal product-modal-gallery" role="dialog" aria-modal="true" aria-label={`Detalhes de ${previewProduct.name}`} onClick={(event) => event.stopPropagation()}>
             <button
               className="product-modal-close"
               onClick={() => setPreviewProduct(null)}
@@ -2273,6 +2393,7 @@ function App() {
                   <div className="quantity-control">
                     <button
                       type="button"
+                      aria-label="Diminuir quantidade"
                       onClick={() => setPreviewQuantity((current) => Math.max(1, current - 1))}
                     >
                       −
@@ -2280,6 +2401,7 @@ function App() {
                     <strong>{previewQuantity}</strong>
                     <button
                       type="button"
+                      aria-label="Aumentar quantidade"
                       onClick={() => setPreviewQuantity((current) => current + 1)}
                     >
                       +

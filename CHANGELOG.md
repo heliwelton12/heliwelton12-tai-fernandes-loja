@@ -2,6 +2,40 @@
 
 Este arquivo registra as mudanças relevantes do projeto. As versões antigas foram reconstruídas a partir do histórico preservado no projeto e dos pacotes de desenvolvimento existentes. Quando uma versão intermediária não possui registro confiável individual, ela é indicada como tal em vez de ter alterações inventadas.
 
+## V42 — Funções finais do painel
+
+- categorias passam a ter controle de visibilidade por `is_visible`;
+- a administradora pode ocultar/exibir uma categoria sem apagar produtos, capas ou ordem;
+- categorias ocultas deixam de aparecer na loja pública e seus produtos também deixam de ser entregues pelas leituras públicas do catálogo;
+- painel continua enxergando categorias e produtos ocultos por políticas administrativas específicas;
+- catálogo administrativo ganha ação **Duplicar**;
+- a duplicação copia dados do produto, variantes e mídias;
+- arquivos do Supabase Storage são copiados para uma pasta própria do novo produto, evitando dependência entre original e cópia;
+- a cópia nasce com status **Oculto** para permitir revisão antes da publicação;
+- mensagens de duplicação/exclusão passam a aparecer na própria área Catálogo;
+- `schema.sql` atualizado e adicionada a migração `v42_category_visibility.sql`;
+- documentação e testes atualizados junto com a versão.
+
+**Status:** aprovada manualmente em localhost com Supabase em 22/09/2026. Foram validados ocultar/exibir categoria, duplicação de produto, variantes, mídias, edição da cópia e exclusão da cópia sem afetar o original.
+
+## V41 — Revisão mobile do painel administrativo
+
+- auditoria das três áreas do painel em iPhone: Cadastrar, Catálogo e Loja;
+- botão móvel de salvar/cadastrar reduzido e reposicionado para respeitar a `safe-area`;
+- espaço extra no fim do formulário para impedir que a ação fixa esconda campos e mídias;
+- seletor de mídia reformulado para um alvo de toque limpo, sem o controle nativo apertado do navegador;
+- descrição do produto mais compacta no mobile;
+- catálogo com grupos um pouco mais compactos;
+- apenas uma categoria do catálogo fica aberta por vez;
+- ao editar um produto, a categoria correspondente é preservada para facilitar o retorno ao catálogo;
+- botões Editar/Excluir refinados para telas pequenas;
+- troca entre Cadastrar, Catálogo e Loja retorna ao topo da seção no mobile;
+- área Loja ganhou espaçamento inferior seguro para Safari/iPhone;
+- texto administrativo deixou de citar Netlify e passa a usar o termo genérico “deploy”;
+- desktop preservado visualmente.
+
+**Status:** aprovada manualmente no celular em 22/09/2026.
+
 ## V40 — Revisão mobile da sacola e fluxo de compra
 
 - sacola adaptada à viewport móvel com `100dvh`;

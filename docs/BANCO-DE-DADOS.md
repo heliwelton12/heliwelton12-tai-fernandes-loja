@@ -36,6 +36,7 @@ store_settings
 | `name` | nome único |
 | `slug` | slug único |
 | `sort_order` | ordem na loja |
+| `is_visible` | controla se a categoria aparece ao público |
 | `cover_url` | URL pública da capa |
 | `cover_storage_path` | caminho da capa no Storage |
 | `created_at` | data de criação |
@@ -137,9 +138,10 @@ RLS está habilitado nas tabelas principais.
 
 ### Leitura pública
 
-- categorias: leitura pública;
-- produtos: somente `available` e `sold_out`;
-- mídia/variantes: leitura somente quando o produto relacionado também é público;
+- categorias: o público lê apenas categorias com `is_visible = true`;
+- produtos: o público lê `available`/`sold_out` somente quando a categoria também está visível;
+- mídia/variantes: acompanham a visibilidade do produto e da categoria;
+- administradores autorizados possuem políticas de leitura para gerenciar também categorias e produtos ocultos;
 - configurações da loja: leitura pública;
 - admins: o usuário autenticado pode ler somente a própria linha.
 
@@ -187,6 +189,10 @@ Cria configurações dinâmicas da loja.
 ### `supabase/category_covers.sql`
 
 Adiciona campos das capas nas categorias.
+
+### `supabase/v42_category_visibility.sql`
+
+Adiciona `categories.is_visible` e ajusta as políticas de leitura para esconder categorias/produtos do público sem impedir a administração dos registros ocultos.
 
 ### `supabase/v25_admin_display_name.sql`
 

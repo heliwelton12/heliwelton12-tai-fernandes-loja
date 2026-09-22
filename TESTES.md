@@ -34,6 +34,38 @@ Este arquivo diferencia o que já foi validado do que ainda precisa passar pela 
 | Favoritos | Salvar favoritos localmente | Navegador | 🔄 | Funcional; incluir na regressão final. |
 | Sex Shop | Confirmação 18+ | Navegador | 🔄 | Persistência implementada; repetir antes da versão 1.0.0. |
 | Configurações | Loja lê `store_settings` | Produção | ✅ | Alterações do painel aparecem sem deploy. |
+| Admin mobile | Cabeçalho e navegação Cadastrar/Catálogo/Loja | iPhone / localhost | ✅ | Auditoria visual em 22/09/2026; sem estouro lateral. |
+| Admin mobile | Formulário de cadastro | iPhone / localhost | ✅ | V41 conferida após as alterações em 22/09/2026. |
+| Admin mobile | Catálogo com grupos fechados | iPhone / localhost | ✅ | Grupos fechados e cards legíveis; V41 compacta e limita a uma categoria aberta por vez. |
+| Admin mobile | Configurações da loja | iPhone / localhost | ✅ | Campos, recebimento, pagamentos, rodapé e categorias visualmente utilizáveis. |
+| Admin mobile | Capas e ordem das categorias | iPhone / localhost | ✅ | Cards, setas e seleção de imagem cabem na tela. |
+| Admin mobile | V41 após alterações | iPhone / localhost | ✅ | Usuário conferiu a versão e confirmou que estava tudo certo em 22/09/2026. |
+
+## Testes da V42
+
+| Área | Cenário | Ambiente | Status | Observação |
+|---|---|---|---|---|
+| Categorias | Ocultar categoria sem apagar dados | Localhost + Supabase | ✅ | Categoria ocultada e removida da loja pública sem apagar os dados. |
+| Categorias | Exibir categoria novamente | Localhost + Supabase | ✅ | Categoria voltou à loja com capa, ordem e produtos preservados. |
+| Catálogo | Duplicar produto | Localhost + Supabase | ✅ | Cópia criada corretamente e mantida fora da vitrine até revisão. |
+| Catálogo | Duplicar variantes | Localhost + Supabase | ✅ | Tamanhos e cores preservados na cópia. |
+| Catálogo | Duplicar mídia local | Localhost + Supabase | ✅ | Mídias vinculadas à cópia corretamente. |
+| Catálogo | Duplicar mídia do Storage | Localhost + Supabase | ✅ | Mídias do Storage preservadas na cópia sem afetar o original. |
+| Catálogo | Excluir cópia sem quebrar original | Localhost + Supabase | ✅ | Cópia excluída e produto original continuou intacto. |
+| RLS | Público não lê categoria oculta | Supabase | ✅ | Validado funcionalmente pela vitrine; repetir tecnicamente na auditoria V44. |
+| RLS | Admin continua lendo itens ocultos | Supabase | ✅ | Painel continuou gerenciando categorias e produtos ocultos; repetir tecnicamente na auditoria V44. |
+
+
+### Resultado da V42
+
+- ✅ Ocultar categoria testado.
+- ✅ Exibir categoria testado.
+- ✅ Duplicar produto testado.
+- ✅ Variantes preservadas.
+- ✅ Mídias preservadas.
+- ✅ Edição da cópia não alterou o original.
+- ✅ Exclusão da cópia não afetou o original.
+- ✅ V42 aprovada pelo usuário em 22/09/2026.
 
 ## Regressão final obrigatória antes da v1.0.0
 

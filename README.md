@@ -2,7 +2,7 @@
 
 Loja virtual responsiva para **Tai Fernandes Moda Íntima**, com catálogo administrável, favoritos, sacola, checkout e finalização de pedido pelo WhatsApp.
 
-> **Estado atual:** V40 — revisão da sacola e do fluxo de compra no celular concluída e testada manualmente. O projeto está em fase de refinamento local antes da publicação definitiva.
+> **Estado atual:** V42 — funções finais do painel aprovadas em localhost em 22/09/2026. Próxima etapa: V43 — SEO e preparação pública.
 
 ## Tecnologias
 
@@ -58,10 +58,14 @@ Disponível em `/admin`.
 - público de Pijamas;
 - catálogo agrupado por categoria;
 - categorias do catálogo fechadas por padrão;
+- no mobile, apenas uma categoria do catálogo fica aberta por vez;
+- formulário e upload de mídia refinados para iPhone/Android;
 - busca e filtro de produtos;
 - criação de categorias;
 - capa personalizada das categorias;
 - ordenação das categorias;
+- ocultar/exibir categorias sem apagar seus produtos;
+- duplicação segura de produtos, incluindo variantes e mídias;
 - configurações da loja, atendimento, pagamentos, retirada, entrega e rodapé.
 
 ## Estrutura principal
@@ -83,6 +87,7 @@ supabase/
 ├── seed.sql
 ├── store_settings.sql
 ├── category_covers.sql
+├── v42_category_visibility.sql
 └── v25_admin_display_name.sql  # histórico; não é dependência do painel atual
 
 docs/
@@ -170,9 +175,10 @@ Enquanto a revisão final estiver em andamento:
 
 ## Próximas etapas
 
-1. V41 — revisão do painel administrativo no celular;
-2. funções finais do painel;
-3. SEO, favicon, Open Graph, sitemap e robots;
+1. V43 — SEO, favicon, Open Graph, sitemap, robots e otimização de imagens;
+2. V44 — auditoria de segurança (RLS, Auth, Storage, sessões e dados locais);
+3. V45 — pré-lançamento, 404, links, PageSpeed, build final e regressão;
+4. v1.0.0 e publicação no Cloudflare Pages;
 4. segurança, 404 e revisão geral de links;
 5. testes finais e PageSpeed;
 6. build de produção local;

@@ -130,6 +130,9 @@ export default function AdminApp() {
   const [newCategoryName, setNewCategoryName] = useState('')
   const [categoryCreating, setCategoryCreating] = useState(false)
   const [categoryReordering, setCategoryReordering] = useState(false)
+  const [categoryVisibilitySaving, setCategoryVisibilitySaving] = useState({})
+  const [duplicatingProductId, setDuplicatingProductId] = useState('')
+  const [catalogMessage, setCatalogMessage] = useState('')
 
   const editing = Boolean(form.id)
   const selectedFormCategory = categories.find((category) => category.id === form.categoryId)
@@ -236,10 +239,19 @@ export default function AdminApp() {
   }, [filteredProducts, categories])
 
   function toggleCatalogCategory(categoryName) {
-    setExpandedCategories((current) => ({
-      ...current,
-      [categoryName]: !current[categoryName],
-    }))
+    setExpandedCategories((current) =>
+      current[categoryName] ? {} : { [categoryName]: true }
+    )
+  }
+
+  function openMobileSection(section) {
+    setMobileSection(section)
+
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 1050px)').matches) {
+      window.requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      })
+    }
   }
 
   async function checkAdmin() {
@@ -277,17 +289,17 @@ export default function AdminApp() {
   async function loadCategories() {
     let { data, error } = await supabase
       .from('categories')
-      .select('id, name, slug, sort_order, cover_url, cover_storage_path')
+      .select('id, name, slug, sort_order, cover_url, cover_storage_path, is_visible')
       .order('sort_order')
 
-    // Compatibilidade enquanto a migração de capas ainda não foi executada.
+    // Compatibilidade caso uma instalação ainda não tenha executado as migrações mais recentes.
     if (error) {
       const fallback = await supabase
         .from('categories')
-        .select('id, name, slug, sort_order')
+        .select('id, name, slug, sort_order, cover_url, cover_storage_path')
         .order('sort_order')
 
-      data = fallback.data
+      data = (fallback.data || []).map((category) => ({ ...category, is_visible: true }))
       error = fallback.error
     }
 
@@ -334,8 +346,8 @@ export default function AdminApp() {
 
       const { data, error } = await supabase
         .from('categories')
-        .insert({ name, slug, sort_order: nextSortOrder })
-        .select('id, name, slug, sort_order, cover_url, cover_storage_path')
+        .insert({ name, slug, sort_order: nextSortOrder, is_visible: true })
+        .select('id, name, slug, sort_order, cover_url, cover_storage_path, is_visible')
         .single()
 
       if (error) throw error
@@ -391,6 +403,40 @@ export default function AdminApp() {
       await loadCategories()
     } finally {
       setCategoryReordering(false)
+    }
+  }
+
+  async function toggleCategoryVisibility(category) {
+    const currentlyVisible = category.is_visible !== false
+
+    if (currentlyVisible) {
+      const confirmed = window.confirm(
+        `Ocultar “${category.name}” da loja? Os produtos e a capa serão mantidos e você poderá exibir a categoria novamente quando quiser.`
+      )
+      if (!confirmed) return
+    }
+
+    setCategoryVisibilitySaving((current) => ({ ...current, [category.id]: true }))
+    setCategoryCoverMessage('')
+
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .update({ is_visible: !currentlyVisible })
+        .eq('id', category.id)
+
+      if (error) throw error
+
+      await loadCategories()
+      setCategoryCoverMessage(
+        currentlyVisible
+          ? `${category.name} foi ocultada da loja. Nenhum produto foi apagado.`
+          : `${category.name} voltou a aparecer na loja.`
+      )
+    } catch (error) {
+      setCategoryCoverMessage(`Não foi possível alterar a visibilidade: ${error.message}`)
+    } finally {
+      setCategoryVisibilitySaving((current) => ({ ...current, [category.id]: false }))
     }
   }
 
@@ -668,6 +714,8 @@ export default function AdminApp() {
   }
 
   function editProduct(product) {
+    const categoryName = product.category?.name || 'Sem categoria'
+    setExpandedCategories({ [categoryName]: true })
     setMobileSection('editor')
     const sizes = [...new Set((product.variants || []).map((item) => item.size).filter(Boolean))]
     const colors = [...new Set((product.variants || []).map((item) => item.color).filter(Boolean))]
@@ -825,6 +873,12 @@ export default function AdminApp() {
       await syncVariants(productId)
       await uploadFiles(productId)
       await loadProducts()
+
+      const savedCategoryName = categories.find((category) => category.id === form.categoryId)?.name
+      if (savedCategoryName) {
+        setExpandedCategories({ [savedCategoryName]: true })
+      }
+
       resetForm()
       setMobileSection('catalog')
       setMessage('Produto salvo com sucesso.')
@@ -891,6 +945,117 @@ export default function AdminApp() {
     }
   }
 
+  async function duplicateProduct(product) {
+    if (duplicatingProductId) return
+
+    const confirmed = window.confirm(
+      `Duplicar “${product.name}”? A cópia será criada como Oculta para você revisar antes de publicar.`
+    )
+    if (!confirmed) return
+
+    setDuplicatingProductId(product.id)
+    setCatalogMessage('')
+
+    let newProductId = ''
+    const copiedStoragePaths = []
+
+    try {
+      const copyName = `${product.name} - Cópia`
+      const { data: newProduct, error: productError } = await supabase
+        .from('products')
+        .insert({
+          category_id: product.category?.id,
+          name: copyName,
+          slug: `${slugify(product.name)}-copia-${Date.now().toString().slice(-8)}`,
+          description: product.description || null,
+          price: Number(product.price || 0),
+          status: 'hidden',
+          is_new: Boolean(product.is_new),
+          is_demo: Boolean(product.is_demo),
+          audience: product.audience || null,
+        })
+        .select('id')
+        .single()
+
+      if (productError) throw productError
+      newProductId = newProduct.id
+
+      const variantRows = (product.variants || []).map((variant) => ({
+        product_id: newProductId,
+        size: variant.size || null,
+        color: variant.color || null,
+        stock_quantity: variant.stock_quantity ?? null,
+        active: variant.active !== false,
+      }))
+
+      if (variantRows.length) {
+        const { error: variantsError } = await supabase
+          .from('product_variants')
+          .insert(variantRows)
+        if (variantsError) throw variantsError
+      }
+
+      const orderedMedia = [...(product.media || [])].sort(
+        (a, b) => Number(b.is_cover) - Number(a.is_cover) || a.sort_order - b.sort_order
+      )
+
+      for (let index = 0; index < orderedMedia.length; index += 1) {
+        const item = orderedMedia[index]
+        let duplicatedUrl = item.url
+        let duplicatedStoragePath = null
+
+        if (item.storage_path) {
+          const sourceName = item.storage_path.split('/').pop() || `midia-${index}`
+          duplicatedStoragePath = `products/${newProductId}/${Date.now()}-${index}-${fileNameSafe(sourceName)}`
+
+          const { error: copyError } = await supabase.storage
+            .from('product-media')
+            .copy(item.storage_path, duplicatedStoragePath)
+
+          if (copyError) throw copyError
+          copiedStoragePaths.push(duplicatedStoragePath)
+
+          const { data: publicUrlData } = supabase.storage
+            .from('product-media')
+            .getPublicUrl(duplicatedStoragePath)
+          duplicatedUrl = publicUrlData.publicUrl
+        }
+
+        const { error: mediaError } = await supabase
+          .from('product_media')
+          .insert({
+            product_id: newProductId,
+            media_type: item.media_type,
+            url: duplicatedUrl,
+            storage_path: duplicatedStoragePath,
+            is_cover: Boolean(item.is_cover),
+            sort_order: item.sort_order ?? index,
+          })
+
+        if (mediaError) throw mediaError
+      }
+
+      await loadProducts()
+      const categoryName = product.category?.name || 'Sem categoria'
+      setExpandedCategories({ [categoryName]: true })
+      setCatalogMessage(`Cópia criada como Oculta. Revise “${copyName}” e altere o status para Disponível quando estiver pronta.`)
+    } catch (error) {
+      console.error(error)
+
+      if (copiedStoragePaths.length) {
+        await supabase.storage.from('product-media').remove(copiedStoragePaths)
+      }
+
+      if (newProductId) {
+        await supabase.from('products').delete().eq('id', newProductId)
+      }
+
+      setCatalogMessage(`Não foi possível duplicar o produto: ${error.message}`)
+    } finally {
+      setDuplicatingProductId('')
+    }
+  }
+
   async function deleteProduct(product) {
     if (!window.confirm(`Excluir “${product.name}” definitivamente?`)) return
 
@@ -911,9 +1076,9 @@ export default function AdminApp() {
 
       if (form.id === product.id) resetForm()
       await loadProducts()
-      setMessage('Produto excluído.')
+      setCatalogMessage('Produto excluído.')
     } catch (error) {
-      setMessage(`Não foi possível excluir: ${error.message}`)
+      setCatalogMessage(`Não foi possível excluir: ${error.message}`)
     }
   }
 
@@ -1039,14 +1204,14 @@ export default function AdminApp() {
         <button
           type="button"
           className={mobileSection === 'editor' ? 'active' : ''}
-          onClick={() => setMobileSection('editor')}
+          onClick={() => openMobileSection('editor')}
         >
           {editing ? 'Editar produto' : 'Cadastrar'}
         </button>
         <button
           type="button"
           className={mobileSection === 'catalog' ? 'active' : ''}
-          onClick={() => setMobileSection('catalog')}
+          onClick={() => openMobileSection('catalog')}
         >
           Catálogo
           <span>{products.length}</span>
@@ -1054,7 +1219,7 @@ export default function AdminApp() {
         <button
           type="button"
           className={mobileSection === 'settings' ? 'active' : ''}
-          onClick={() => setMobileSection('settings')}
+          onClick={() => openMobileSection('settings')}
         >
           Loja
         </button>
@@ -1267,8 +1432,8 @@ export default function AdminApp() {
               )}
 
               <label className="admin-upload">
-                <strong>Adicionar mídia</strong>
-                <span>Fotos: JPG, PNG, WebP · Vídeos: MP4, WebM</span>
+                <strong>Selecionar fotos e vídeos</strong>
+                <span>JPG, PNG, WebP · MP4 ou WebM</span>
                 <input
                   type="file"
                   multiple
@@ -1292,7 +1457,9 @@ export default function AdminApp() {
               {files.length > 0 && (
                 <div className="admin-selected-files">
                   <strong>{files.length} {files.length === 1 ? 'arquivo selecionado' : 'arquivos selecionados'}</strong>
-                  <span>As prévias acima ainda não foram enviadas. Clique em “Salvar alterações” para concluir.</span>
+                  <span>
+                    As prévias acima ainda não foram enviadas. Clique em “{editing ? 'Salvar alterações' : 'Cadastrar produto'}” para concluir.
+                  </span>
                 </div>
               )}
             </section>
@@ -1336,6 +1503,8 @@ export default function AdminApp() {
               </label>
             </div>
           </div>
+
+          {catalogMessage && <div className="admin-message">{catalogMessage}</div>}
 
           {groupedProducts.length ? (
             <div className="admin-category-groups">
@@ -1394,6 +1563,13 @@ export default function AdminApp() {
 
                                 <div className="admin-product-actions">
                                   <button onClick={() => editProduct(product)}>Editar</button>
+                                  <button
+                                    className="duplicate"
+                                    disabled={Boolean(duplicatingProductId)}
+                                    onClick={() => duplicateProduct(product)}
+                                  >
+                                    {duplicatingProductId === product.id ? 'Duplicando…' : 'Duplicar'}
+                                  </button>
                                   <button className="danger" onClick={() => deleteProduct(product)}>Excluir</button>
                                 </div>
                               </div>
@@ -1420,7 +1596,7 @@ export default function AdminApp() {
               <p className="admin-kicker">CONFIGURAÇÕES DA LOJA</p>
               <h2>Dados públicos</h2>
               <p className="admin-settings-intro">
-                O que for salvo aqui aparece na loja sem precisar alterar código ou republicar no Netlify.
+                O que for salvo aqui aparece na loja sem precisar alterar código nem fazer um novo deploy.
               </p>
             </div>
           </div>
@@ -1642,9 +1818,11 @@ export default function AdminApp() {
                 const draft = categoryCoverDrafts[category.id]
                 const preview = draft?.previewUrl || category.cover_url || ''
                 const savingCover = Boolean(categoryCoverSaving[category.id])
+                const savingVisibility = Boolean(categoryVisibilitySaving[category.id])
+                const categoryVisible = category.is_visible !== false
 
                 return (
-                  <article className="admin-category-cover-card" key={category.id}>
+                  <article className={`admin-category-cover-card ${categoryVisible ? '' : 'is-hidden'}`} key={category.id}>
                     <div className="admin-category-cover-preview">
                       {preview ? (
                         <img src={preview} alt={`Capa de ${category.name}`} />
@@ -1663,6 +1841,23 @@ export default function AdminApp() {
                               ? 'Capa personalizada ativa.'
                               : 'Usando a capa padrão do site.'}
                         </small>
+                      </div>
+
+                      <div className="admin-category-visibility">
+                        <span className={categoryVisible ? 'is-visible' : 'is-hidden'}>
+                          {categoryVisible ? 'Visível na loja' : 'Oculta da loja'}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={savingVisibility}
+                          onClick={() => toggleCategoryVisibility(category)}
+                        >
+                          {savingVisibility
+                            ? 'Salvando…'
+                            : categoryVisible
+                              ? 'Ocultar categoria'
+                              : 'Exibir categoria'}
+                        </button>
                       </div>
 
                       <div className="admin-category-order" aria-label={`Ordenar ${category.name}`}>

@@ -4533,3 +4533,547 @@ a {
     min-height: 205px;
   }
 }
+
+/* v39 — fechamento final das categorias: desktop + celular */
+.categories-section,
+.categories-carousel-shell,
+.categories-carousel-topline,
+.categories-track {
+  background: #fffdfd !important;
+}
+
+.categories-track {
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  gap: 14px;
+}
+
+.categories-track .category-card {
+  flex: 0 0 clamp(350px, 30vw, 385px);
+  scroll-snap-align: start;
+  border: 1px solid #eedbe1;
+  border-radius: 20px;
+  background: #fffafb;
+  box-shadow: none !important;
+  overflow: hidden;
+}
+
+.categories-track .category-card:hover {
+  box-shadow: 0 8px 20px rgba(190, 83, 111, 0.055) !important;
+}
+
+.categories-track .category-card .category-card-hitarea {
+  grid-template-columns: minmax(170px, 49%) minmax(0, 1fr);
+  min-height: 222px;
+}
+
+.categories-track .category-visual,
+.categories-track .category-visual.has-image {
+  width: 100%;
+  height: 222px;
+  padding: 0;
+  border-radius: 0;
+  overflow: hidden;
+  background: #f9eef2;
+}
+
+.categories-track .category-visual.has-image img,
+.categories-track .category-card:hover .category-visual.has-image img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: 50% 12%;
+  transform: none !important;
+  filter: none !important;
+  transition: none !important;
+}
+
+.categories-track .category-card-content {
+  min-height: 222px;
+  padding: 22px 20px 19px;
+}
+
+.categories-track .category-card h3 {
+  font-size: 23px;
+}
+
+.categories-track .category-card p {
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+@media (max-width: 980px) {
+  .categories-track .category-card {
+    flex-basis: clamp(330px, 56vw, 365px);
+  }
+}
+
+/* No celular o carrossel continua lateral, mas o card vira vertical.
+   Assim a capa volta a ter bastante área real e fica mais nítida. */
+@media (max-width: 680px) {
+  .categories-section {
+    gap: 16px;
+    padding-top: 38px;
+    padding-bottom: 30px;
+  }
+
+  .categories-carousel-topline {
+    min-height: 32px;
+    margin-bottom: 7px;
+  }
+
+  .categories-carousel-topline > span {
+    font-size: 10px;
+  }
+
+  .categories-carousel-controls button {
+    width: 32px;
+    height: 32px;
+  }
+
+  .categories-track {
+    gap: 12px;
+    margin-right: -3.5vw;
+    padding-right: 17vw;
+    padding-bottom: 2px;
+  }
+
+  .categories-track .category-card {
+    flex: 0 0 min(76vw, 285px);
+    border-radius: 20px;
+  }
+
+  .categories-track .category-card .category-card-hitarea {
+    display: block;
+    min-height: 0;
+  }
+
+  .categories-track .category-visual,
+  .categories-track .category-visual.has-image {
+    height: min(72vw, 245px);
+    border-radius: 0;
+  }
+
+  .categories-track .category-visual.has-image img,
+  .categories-track .category-card:hover .category-visual.has-image img {
+    object-position: 50% 10%;
+  }
+
+  .categories-track .category-card-content {
+    min-height: 138px;
+    padding: 16px 16px 15px;
+  }
+
+  .categories-track .category-card h3 {
+    font-size: 24px;
+  }
+
+  .categories-track .category-card p {
+    margin: 7px 0 12px;
+    font-size: 10px;
+    line-height: 1.45;
+  }
+
+  .categories-track .category-explore {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 390px) {
+  .categories-track .category-card {
+    flex-basis: min(80vw, 275px);
+  }
+
+  .categories-track .category-visual,
+  .categories-track .category-visual.has-image {
+    height: 235px;
+  }
+}
+
+/* v40 — revisão mobile da sacola e do fluxo de compra */
+.checkout-error {
+  display: grid;
+  gap: 3px;
+  padding: 12px 14px;
+  border: 1px solid #efc9d4;
+  border-radius: 14px;
+  background: #fff4f7;
+  color: #8f4056;
+}
+
+.checkout-error strong {
+  font-size: 11px;
+}
+
+.checkout-error span {
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.cart-header-summary {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.cart-drawer,
+.product-modal {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 680px) {
+  /* A sacola vira uma tela móvel estável, sem o fundo da loja rolando por trás. */
+  .cart-backdrop {
+    background: rgba(39, 25, 30, 0.42);
+  }
+
+  .cart-drawer {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    padding-bottom: env(safe-area-inset-bottom);
+    scroll-padding-top: 86px;
+    scroll-padding-bottom: 110px;
+    background: #fffdfd;
+  }
+
+  .cart-header {
+    padding: calc(14px + env(safe-area-inset-top)) 16px 13px;
+    background: rgba(255, 253, 253, 0.98);
+  }
+
+  .cart-header h2 {
+    font-size: 32px;
+    line-height: 1;
+  }
+
+  .cart-close {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+  }
+
+  .cart-items {
+    gap: 10px;
+    padding: 12px 10px 3px;
+  }
+
+  .cart-item {
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: 11px;
+    padding: 10px;
+    border-radius: 17px;
+  }
+
+  .cart-item-image {
+    height: 116px;
+    border-radius: 13px;
+  }
+
+  .cart-item-title {
+    gap: 8px;
+  }
+
+  .cart-item-title h3 {
+    font-size: 18px;
+    line-height: 1.08;
+  }
+
+  .cart-remove {
+    min-height: 34px;
+    padding: 0 2px 0 8px;
+    font-size: 10px;
+  }
+
+  .cart-variants {
+    margin-top: 6px;
+    font-size: 10px;
+  }
+
+  .cart-item-bottom {
+    gap: 8px;
+    padding-top: 8px;
+  }
+
+  .cart-item-bottom > strong {
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  /* 44 px é uma área de toque mais confortável em celular. */
+  .quantity-control {
+    grid-template-columns: 42px 38px 42px;
+  }
+
+  .quantity-control button {
+    width: 42px;
+    height: 42px;
+    font-size: 20px;
+  }
+
+  .quantity-control span,
+  .quantity-control strong {
+    text-align: center;
+    font-size: 14px;
+  }
+
+  .cart-secondary-actions {
+    margin: 10px 10px 0;
+    gap: 8px;
+  }
+
+  .cart-secondary-actions button {
+    min-height: 42px;
+  }
+
+  .checkout-box {
+    gap: 16px;
+    margin: 12px 10px calc(22px + env(safe-area-inset-bottom));
+    padding: 17px 15px 18px;
+    border-radius: 20px;
+  }
+
+  .checkout-total {
+    padding-bottom: 13px;
+  }
+
+  .checkout-total strong {
+    font-size: 26px;
+  }
+
+  .checkout-info-box {
+    padding: 12px 13px;
+  }
+
+  .checkout-field {
+    gap: 7px;
+  }
+
+  /* 16px evita o zoom automático do Safari ao tocar em campos. */
+  .checkout-field input,
+  .checkout-field textarea {
+    font-size: 16px;
+  }
+
+  .checkout-field input {
+    height: 50px;
+    padding: 0 14px;
+  }
+
+  .checkout-field textarea {
+    min-height: 96px;
+    padding: 13px 14px;
+  }
+
+  .choice-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .choice-grid.two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .choice-grid button {
+    min-height: 46px;
+    padding: 0 8px;
+    font-size: 12px;
+  }
+
+  .toggle-row {
+    min-height: 44px;
+  }
+
+  .toggle-row input {
+    width: 18px;
+    height: 18px;
+  }
+
+  .delivery-fields {
+    gap: 11px;
+  }
+
+  .checkout-review {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .checkout-review > div {
+    padding: 9px 6px;
+  }
+
+  .checkout-review strong {
+    font-size: 10px;
+  }
+
+  .finish-order-button {
+    position: sticky;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    z-index: 4;
+    min-height: 56px;
+    padding: 0 18px;
+    border: 1px solid rgba(255,255,255,.55);
+    font-size: 15px;
+    box-shadow: 0 14px 32px rgba(37,211,102,.27);
+  }
+
+  /* Modal do produto: compacto, confortável e protegido da barra inferior do navegador. */
+  .product-modal,
+  .product-modal-gallery {
+    max-height: 96dvh;
+    border-radius: 24px 24px 0 0;
+  }
+
+  .product-gallery {
+    padding: 10px 10px 8px;
+  }
+
+  .product-gallery-main {
+    min-height: 280px;
+    height: min(48dvh, 390px);
+    max-height: 390px;
+    border-radius: 18px;
+  }
+
+  .product-gallery-main img,
+  .product-gallery-main video {
+    max-height: 390px;
+  }
+
+  .product-gallery-thumbs {
+    gap: 8px;
+    margin-top: 9px;
+    padding-bottom: 1px;
+    scroll-snap-type: x proximity;
+  }
+
+  .product-gallery-thumbs button {
+    flex-basis: 60px;
+    width: 60px;
+    height: 64px;
+    scroll-snap-align: start;
+  }
+
+  .product-modal-content {
+    padding: 20px 16px calc(28px + env(safe-area-inset-bottom));
+  }
+
+  .product-modal-topline {
+    gap: 10px;
+  }
+
+  .modal-favorite {
+    min-height: 40px;
+    padding: 0 12px;
+  }
+
+  .product-modal-content h2 {
+    margin-top: 7px;
+    font-size: clamp(31px, 9.4vw, 38px);
+    line-height: 1.02;
+  }
+
+  .product-modal-price {
+    margin-top: 11px;
+    font-size: 28px;
+  }
+
+  .product-modal-description {
+    margin: 16px 0 18px;
+    line-height: 1.55;
+  }
+
+  .product-modal-options {
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .product-modal-options select {
+    height: 48px;
+    font-size: 16px;
+  }
+
+  .modal-purchase-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: end;
+    margin: 0 0 15px;
+  }
+
+  .modal-total-preview {
+    text-align: right;
+  }
+
+  .modal-total-preview strong {
+    font-size: 24px;
+    white-space: nowrap;
+  }
+
+  .modal-add-button {
+    min-height: 56px;
+    margin-top: 0;
+    font-size: 15px;
+    box-shadow: 0 12px 28px rgba(190, 83, 111, .20);
+  }
+
+  /* A confirmação não disputa espaço com o botão flutuante do WhatsApp. */
+  .store-toast {
+    top: auto;
+    right: 12px;
+    left: 12px;
+    bottom: calc(148px + env(safe-area-inset-bottom));
+    min-height: 52px;
+    padding: 8px 14px;
+    border-radius: 17px;
+    justify-content: flex-start;
+  }
+
+  .store-toast > span {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .cart-item {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+
+  .cart-item-image {
+    height: 104px;
+  }
+
+  .quantity-control {
+    grid-template-columns: 38px 34px 38px;
+  }
+
+  .quantity-control button {
+    width: 38px;
+    height: 40px;
+  }
+
+  .choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .choice-grid.two {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .checkout-review {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-purchase-row {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-total-preview {
+    text-align: left;
+  }
+}
