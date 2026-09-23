@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin
 
-Sitemap: https://taifernandes-modaintima.netlify.app/sitemap.xml
+Sitemap: https://taifernandes-modaintima.pages.dev/sitemap.xml

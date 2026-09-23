@@ -522,3 +522,19 @@ As versões **V6, V8 e V9** existiram como iterações intermediárias, mas não
 - A logo do cabeçalho passou a usar `fetchPriority="high"` somente no mobile.
 - A logo do rodapé permanece com `loading="lazy"`.
 - Nenhuma alteração foi feita nas áreas já aprovadas em 100%.
+
+### V47.15 — migração oficial para Cloudflare Pages
+
+- Projeto migrado com sucesso do Netlify para Cloudflare Pages em 23/09/2026.
+- Repositório GitHub existente foi mantido como fonte do projeto.
+- Branch `main` conectada ao deploy automático do Cloudflare Pages.
+- Framework configurado como React (Vite).
+- Build de produção configurado com `npm run build`.
+- Diretório publicado configurado como `dist`.
+- Variáveis públicas `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` configuradas no Cloudflare.
+- Nova origem oficial:
+  `https://taifernandes-modaintima.pages.dev/`
+- Home, Supabase, catálogo, painel administrativo, login, Política de Privacidade e rota 404 testados com sucesso no Cloudflare.
+- canonical, Open Graph, Twitter Card, JSON-LD, ai-catalog e rota de privacidade atualizados para a nova origem.
+- robots.txt, sitemap.xml e llms.txt atualizados para remover referências à origem anterior do Netlify.
+- Netlify passa a ser tratado apenas como ambiente anterior/histórico durante a consolidação da migração.

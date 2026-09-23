@@ -2,7 +2,7 @@
 
 Loja virtual responsiva para **Tai Fernandes Moda Íntima**, com catálogo administrável, favoritos, sacola, checkout e finalização de pedido pelo WhatsApp.
 
-> **Estado atual:** V46 — acabamento final de experiência implementado localmente em 22/09/2026. V45 está aprovada localmente com `npm audit`, build e preview concluídos; V46 aguarda migração/testes antes da etapa Lighthouse e publicação.
+> **Estado atual:** V47 — projeto migrado com sucesso do Netlify para Cloudflare Pages em 23/09/2026. Home, painel administrativo, Política de Privacidade, rota 404, catálogo e integração com Supabase validados no novo ambiente.
 
 ## Tecnologias
 
@@ -15,8 +15,8 @@ Loja virtual responsiva para **Tai Fernandes Moda Íntima**, com catálogo admin
 - Supabase Storage
 - WhatsApp para finalização dos pedidos
 - Git / GitHub para versionamento
-- Netlify como hospedagem atual
-- Cloudflare Pages planejado para a publicação definitiva
+- Cloudflare Pages como hospedagem oficial
+- integração contínua GitHub → Cloudflare Pages
 
 ## Funcionalidades principais
 
@@ -192,8 +192,8 @@ Enquanto a revisão final estiver em andamento:
 
 ## Próximas etapas
 
-1. executar `supabase/v46_category_editing.sql` e validar a V46 em localhost;
-2. repetir `npm run build` após a aprovação da V46;
-3. executar Lighthouse/PageSpeed;
-4. definir a URL final do Cloudflare e atualizar canonical/OG/sitemap/llms;
-5. marcar `v1.0.0` e publicar no Cloudflare Pages.
+1. concluir auditoria pós-migração no Cloudflare Pages;
+2. executar PageSpeed Mobile e Desktop na origem oficial;
+3. registrar eventuais pendências reais de performance;
+4. concluir regressão final da v1.0.0;
+5. criar a tag estável quando todos os gates forem aprovados.

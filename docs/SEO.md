@@ -76,19 +76,10 @@ public/sitemap.xml
 
 ## Domínio
 
-Na V43 as URLs absolutas continuam usando temporariamente:
+A hospedagem oficial atual do projeto é o Cloudflare Pages:
 
 ```text
-https://taifernandes-modaintima.netlify.app/
-```
-
-Antes da publicação definitiva, substituir essa origem em:
-
-- `index.html` — canonical, `og:url`, `og:image` e `twitter:image`;
-- `public/robots.txt` — endereço do sitemap;
-- `public/sitemap.xml` — `<loc>`.
-
-A substituição deve ocorrer somente depois que o domínio do Cloudflare Pages ou o domínio próprio estiver definido.
+https://taifernandes-modaintima.pages.dev/
 
 ## Otimização de imagens
 

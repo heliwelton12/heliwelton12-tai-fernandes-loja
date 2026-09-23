@@ -2,9 +2,13 @@
 
 ## Situação atual
 
-A loja está publicada no Netlify durante o desenvolvimento, mas o plano atual é concluir as melhorias localmente e fazer a publicação definitiva no Cloudflare Pages somente depois da revisão final.
+A loja foi migrada com sucesso do Netlify para o Cloudflare Pages em 23/09/2026.
 
-O repositório GitHub continua sendo a fonte do código. Não é necessário criar um repositório novo somente para trocar de hospedagem.
+Origem oficial atual:
+
+```text
+https://taifernandes-modaintima.pages.dev/
+
 
 ## Fluxo durante a fase de revisão
 
@@ -68,22 +72,26 @@ Nunca usar no frontend:
 - senha de usuário;
 - token privado.
 
-## Netlify — hospedagem atual
+## Netlify — ambiente anterior
 
-O projeto possui `netlify.toml` com fallback SPA.
+O Netlify foi utilizado como hospedagem durante o desenvolvimento e as auditorias anteriores.
 
-Enquanto o repositório estiver conectado ao Netlify, um `git push` na branch de produção pode iniciar novo deploy automaticamente. Por isso, durante os refinamentos locais, o push deve ser evitado até a etapa combinada de publicação.
+A partir de 23/09/2026, ele deixou de ser a origem oficial do projeto.
 
-## Cloudflare Pages — destino planejado
+Arquivos como `netlify.toml` e `DEPLOY_NETLIFY.md` são mantidos apenas como histórico e referência de rollback enquanto a migração é consolidada.
 
-Configuração esperada para o projeto Vite:
+Não utilizar o endereço do Netlify como canonical, Open Graph, sitemap ou origem pública oficial.
+
+## Cloudflare Pages — hospedagem oficial
+
+Configuração de produção:
 
 ```text
+Production branch: main
+Framework preset: React (Vite)
 Build command: npm run build
 Output directory: dist
-```
-
-Também será necessário configurar as variáveis públicas do Supabase no ambiente de produção.
+Root directory: raiz do repositório
 
 ### SPA
 
