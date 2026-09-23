@@ -348,3 +348,24 @@ Uma nova versão só deve ser marcada como concluída quando:
 - [ ] Confirmar que a seção mantém “ACABOU DE CHEGAR” e “Novidades da loja”.
 - [ ] Confirmar que a frase explicativa sobre produtos adicionados automaticamente não aparece mais.
 - [ ] Conferir alinhamento da seção em desktop e mobile após a remoção.
+
+## V47.4 — reteste Lighthouse após V47.3
+
+### Resultado V47.3 publicado
+- ✅ Mobile: Performance 83, Acessibilidade 100, Práticas recomendadas 92, SEO 100.
+- ✅ Mobile: FCP 3,0 s, LCP 3,7 s, TBT 0 ms, CLS 0, Speed Index 3,0 s.
+- ✅ Desktop: Performance 99, Acessibilidade 100, Práticas recomendadas 92, SEO 100.
+- ✅ Desktop: FCP 0,7 s, LCP 0,9 s, TBT 0 ms, CLS 0, Speed Index 1,0 s.
+- ✅ Houve melhora mensurável em relação ao baseline, mas o gate de publicação não foi fechado.
+
+### Pendências detectadas no relatório
+- 🔄 CSP: confirmar que o script de preload da home não é mais bloqueado.
+- 🔄 Netlify Drawer: desativar em Collaboration tools e confirmar que o `about:srcdoc`/HUD não aparece no relatório.
+- 🔄 LCP mobile: confirmar hero com `fetchPriority=high` e queda de FCP/LCP.
+- 🔄 Fonts: confirmar que Google Fonts saiu da lista de recursos que bloqueiam renderização.
+- 🔄 Agentic browsing: confirmar `ai-catalog.json` válido com `specVersion: "1.0"`.
+- 🔄 Supabase: reenviar as capas antigas de Conjuntos, Camisolas e Lingeries pelo painel para aplicar WebP e cache de 1 ano.
+- ⏳ publicar V47.4 no Netlify temporário.
+- ⏳ executar PageSpeed mobile/desktop novamente.
+- ⏳ só liberar o gate quando não houver regressão funcional nem erro relevante de Console/Lighthouse.
+

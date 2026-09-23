@@ -61,3 +61,58 @@ Este documento registra falhas reais encontradas durante o desenvolvimento. Ele 
 **Causa:** arquivo estático inexistente.
 
 **Correção V47:** manifestos JSON válidos com `entries: []` em `/.well-known/ard.json` e caminhos de compatibilidade. A loja não expõe recursos agentivos chamáveis, portanto o catálogo fica vazio.
+
+## V47.1 — Transparência do logotipo perdida durante otimização
+
+**Sintoma:** após a primeira otimização da V47, o logotipo passou a aparecer com um retângulo preto no cabeçalho e no rodapé.
+
+**Causa:** o arquivo original do logotipo possuía canal alfa (transparência), mas a conversão otimizada inicial foi salva em RGB, removendo o canal alfa e preenchendo as áreas transparentes com preto.
+
+**Correção:** o logotipo foi regenerado a partir do arquivo WebP original, redimensionado para 480 × 164 px com reamostragem de alta qualidade e salvo novamente em WebP preservando RGBA/transparência.
+
+**Resultado esperado:** fundo totalmente transparente no cabeçalho e no rodapé, mantendo a identidade visual e ainda reduzindo o peso em relação ao arquivo original.
+
+**Lição registrada:** otimização de imagens com transparência deve validar explicitamente o canal alfa após a conversão; redução de tamanho não pode alterar a composição visual do ativo.
+
+## V47.2 — painel preso em “Verificando acesso administrativo…” ao voltar para a aba
+
+**Sintoma:** o painel `/admin` funcionava normalmente, mas em alguns momentos, depois de trocar de aba/janela e retornar, permanecia indefinidamente em **“Verificando acesso administrativo…”**. Um `F5` liberava a tela.
+
+**Diagnóstico:** o Console não mostrava erro de autenticação. O problema era de estado interno do React/Supabase.
+
+**Causa:** `onAuthStateChange` marcava `adminChecking=true` em qualquer evento de autenticação, inclusive renovação automática do token. Como o usuário continuava com o mesmo `user.id`, o `useEffect` responsável por chamar `is_admin()` não executava novamente. Assim, a flag de verificação podia ficar presa em `true`.
+
+**Correção:** a restauração da sessão e os eventos de autenticação passaram a atualizar somente `session`. A flag `adminChecking` agora é controlada exclusivamente pela verificação real de permissão quando o usuário autenticado muda. Também foi adicionada proteção contra respostas assíncronas antigas após desmontagem/troca de sessão.
+
+**Correção adicional:** os preloads de logo/hero foram restringidos à rota pública `/`, evitando avisos de recurso pré-carregado e não utilizado em `/admin` e `/privacidade`.
+
+**Teste de regressão obrigatório:** abrir `/admin`, confirmar acesso, trocar de aba por alguns segundos/minutos e retornar repetidas vezes. O painel deve continuar aberto sem exigir `F5` e sem ficar preso na tela de verificação.
+
+## V47.4 — PageSpeed final ainda não fechou o gate
+
+**Sintoma:** após V47.3, o desktop chegou a 99 de Performance e o mobile subiu para 83, mas Práticas recomendadas permaneceu em 92 e o LCP mobile ainda ficou em 3,7 s.
+
+**Diagnóstico 1 — LCP mudou de elemento:** depois de reduzir o logo, o `hero-modelo.webp` passou a ser o LCP real. O relatório mostrou o hero sem `fetchpriority=high`.
+
+**Correção:** prioridade alta removida do logo e aplicada ao hero, com `loading="eager"`. O preload da home também passou a antecipar o hero.
+
+**Diagnóstico 2 — preload bloqueado por CSP:** o script inline de preload havia mudado, mas o hash CSP continuava permitindo apenas o JSON-LD. O navegador bloqueava o script antes de ele criar o preload.
+
+**Correção:** hash SHA-256 do script atual sincronizado em `public/_headers`.
+
+**Diagnóstico 3 — recurso de fonte bloqueando renderização:** Google Fonts continuava no caminho crítico mobile.
+
+**Correção:** folha do Google Fonts passa a iniciar com `media="print"` e é ativada por `public/font-loader.js` após o parse. O fallback de `<noscript>` preserva acessibilidade sem JavaScript.
+
+**Diagnóstico 4 — ai-catalog incompleto:** o arquivo existia, mas o validador exigia `specVersion`.
+
+**Correção:** `ai-catalog.json` e a cópia `/.well-known/ai-catalog.json` agora usam `specVersion: "1.0"`, host mínimo e `entries: []`.
+
+**Diagnóstico 5 — mídia antiga do Supabase:** a otimização V47 só afeta uploads feitos depois da mudança. Capas antigas continuaram pesadas e com TTL de 1 hora.
+
+**Ação obrigatória:** reenviar pelo painel as capas de Conjuntos, Camisolas e Lingeries para que o pipeline atual gere WebP e aplique `cacheControl=31536000`.
+
+**Diagnóstico 6 — Netlify Drawer:** o relatório registrou CSP em `about:srcdoc` e carregamento do HUD do Netlify. Isso é injeção do ambiente temporário, não código da loja.
+
+**Ação:** desativar Netlify Drawer durante a auditoria do ambiente temporário; o Cloudflare Pages não deve introduzir esse componente.
+

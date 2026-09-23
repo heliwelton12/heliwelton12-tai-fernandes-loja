@@ -39,3 +39,55 @@ Após deploy da V47:
 5. comparar LCP e Performance com o baseline.
 
 Não será feita alteração visual relevante apenas para perseguir nota 100. O critério principal é experiência real, estabilidade e acessibilidade.
+
+## Reteste publicado após V47.3
+
+| Métrica | Baseline mobile | V47.3 mobile | Baseline desktop | V47.3 desktop |
+| --- | ---: | ---: | ---: | ---: |
+| Performance | 78 | 83 | 98 | 99 |
+| Acessibilidade | 89 | 100 | 96 | 100 |
+| Práticas recomendadas | 100* | 92 | 92 | 92 |
+| SEO | 92 | 100 | 100 | 100 |
+| FCP | 3,0 s | 3,0 s | 0,8 s | 0,7 s |
+| LCP | 4,5 s | 3,7 s | 1,0 s | 0,9 s |
+| TBT | 0 ms | 0 ms | 0 ms | 0 ms |
+| CLS | 0 | 0 | 0,031 | 0 |
+| Speed Index | 3,1 s | 3,0 s | 1,0 s | 1,0 s |
+
+\* O primeiro baseline mobile foi medido antes da introdução do CSP usado na V47. A comparação de “Práticas recomendadas” deve ser interpretada com essa mudança de contexto.
+
+### Leitura do resultado
+
+A V47 melhorou o LCP mobile em cerca de 0,8 s e elevou acessibilidade/SEO para 100. O desktop chegou a 99 de Performance. O mobile, porém, ainda ficou em 83 e por isso o gate de publicação permanece aberto.
+
+O relatório V47.3 mostrou:
+- hero como novo elemento LCP;
+- `fetchpriority=high` ausente no hero;
+- script de preload bloqueado pela CSP por hash desatualizado;
+- Google Fonts ainda participando do caminho de renderização inicial;
+- `ai-catalog.json` sem `specVersion`;
+- mídia antiga do Supabase ainda com arquivos muito grandes e TTL de 1 hora;
+- script/iframe do Netlify Drawer gerando ocorrência CSP específica do ambiente temporário.
+
+## Otimizações V47.4
+
+- prioridade alta transferida do logo para o hero;
+- hero marcado como eager;
+- preload da home direcionado ao hero;
+- hash CSP sincronizado com o script de preload;
+- Google Fonts ativado de forma não bloqueante por script externo same-origin;
+- `ai-catalog.json` compatível com o schema de catálogo 1.0;
+- reenviar capas antigas do Supabase passa a ser etapa obrigatória antes do próximo PageSpeed;
+- Netlify Drawer deve ser desativado durante a auditoria para não contaminar Console/Best Practices.
+
+## Critério do próximo reteste
+
+O próximo PageSpeed deve ser executado somente depois de:
+1. publicar V47.4;
+2. desativar Netlify Drawer;
+3. reenviar as três capas antigas pesadas;
+4. confirmar ausência de erro vermelho no Console;
+5. aguardar o deploy ficar `Published`.
+
+A meta não é manipular a pontuação, e sim remover gargalos reais. Performance mobile abaixo de 90 será novamente investigada antes de encerrar o gate.
+

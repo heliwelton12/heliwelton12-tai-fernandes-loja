@@ -1227,7 +1227,6 @@ function App() {
               width="480"
               height="164"
               decoding="async"
-              fetchPriority="high"
             />
           </button>
 
@@ -1468,7 +1467,9 @@ function App() {
               alt="Modelo usando lingerie em tons rosé"
               width="1280"
               height="720"
+              loading="eager"
               decoding="async"
+              fetchPriority="high"
             />
             <div className="hero-image-shade" />
             <p className="hero-quote">

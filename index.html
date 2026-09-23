@@ -45,12 +45,21 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
+      id="store-fonts"
       href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap"
       rel="stylesheet"
+      media="print"
     />
+    <script defer src="/font-loader.js"></script>
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
     <script>
-      // O preload de imagens críticas é exclusivo da vitrine.
-      // Evita baixar logo/hero desnecessariamente em /admin e /privacidade.
+      // O hero é o LCP atual da vitrine. O preload é restrito à home para
+      // não gerar download/aviso desnecessário no painel administrativo.
       (() => {
         const path = window.location.pathname.replace(/\/+$/, '') || '/'
         if (path !== '/') return
@@ -59,9 +68,7 @@
         preload.rel = 'preload'
         preload.as = 'image'
         preload.type = 'image/webp'
-        preload.href = window.matchMedia('(max-width: 980px)').matches
-          ? '/logo-header.webp'
-          : '/hero-modelo.webp'
+        preload.href = '/hero-modelo.webp'
         preload.setAttribute('fetchpriority', 'high')
         document.head.appendChild(preload)
       })()

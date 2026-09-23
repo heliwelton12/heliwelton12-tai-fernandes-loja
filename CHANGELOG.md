@@ -444,3 +444,13 @@ As versões **V6, V8 e V9** existiram como iterações intermediárias, mas não
 ### V47.3 — limpeza da seção Novidades
 - Removida da vitrine a frase “Os últimos produtos adicionados ao catálogo aparecem aqui automaticamente.” por ser uma explicação interna desnecessária para o cliente final.
 - Ajustado o cabeçalho da seção para uma única coluna, evitando reservar espaço vazio após a remoção do texto.
+
+### V47.4 — segundo ciclo de otimização Lighthouse
+- Repriorizado o LCP da vitrine: a imagem `hero-modelo.webp` passou a usar `loading="eager"` e `fetchPriority="high"`, enquanto o logo deixou de competir com prioridade alta.
+- O preload da home foi ajustado para antecipar o hero, que passou a ser o LCP real após a otimização do logo.
+- Corrigido o hash CSP do script de preload da home, que estava sendo bloqueado no ambiente publicado.
+- O Google Fonts deixou de bloquear a primeira renderização da vitrine: a folha é ativada após o parse por `public/font-loader.js`, com fallback em `<noscript>`.
+- `ai-catalog.json` e `/.well-known/ai-catalog.json` passaram a declarar `specVersion: "1.0"` e metadados mínimos do host.
+- Registrado que as capas antigas do Supabase precisam ser reenviadas pelo painel para receber a otimização WebP/cache longo introduzida na V47.
+- Registrado passo externo para desativar o Netlify Drawer no ambiente de auditoria, pois o script/iframe injetado pelo Netlify estava gerando ocorrência CSP no Lighthouse.
+
