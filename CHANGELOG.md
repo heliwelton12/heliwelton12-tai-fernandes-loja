@@ -538,3 +538,27 @@ As versões **V6, V8 e V9** existiram como iterações intermediárias, mas não
 - canonical, Open Graph, Twitter Card, JSON-LD, ai-catalog e rota de privacidade atualizados para a nova origem.
 - robots.txt, sitemap.xml e llms.txt atualizados para remover referências à origem anterior do Netlify.
 - Netlify passa a ser tratado apenas como ambiente anterior/histórico durante a consolidação da migração.
+
+## v1.0.0 — primeira versão estável
+
+**Data:** 23/09/2026
+
+Primeira versão estável oficial da Tai Fernandes Moda Íntima.
+
+- catálogo online responsivo;
+- categorias e produtos administráveis pelo Supabase;
+- busca, favoritos, compra rápida e sacola persistente;
+- checkout com Pix, Cartão e Dinheiro;
+- retirada e entrega configuráveis;
+- finalização de pedidos pelo WhatsApp;
+- painel administrativo protegido por Supabase Auth e RLS;
+- gerenciamento de produtos, categorias, mídias e configurações da loja;
+- Política de Privacidade e página 404;
+- SEO técnico, Open Graph, JSON-LD, sitemap, robots e llms.txt;
+- headers de segurança e CSP em produção;
+- otimizações de carregamento, code splitting e Supabase REST na vitrine;
+- migração oficial do Netlify para Cloudflare Pages;
+- auditoria final com 0 vulnerabilidades no `npm audit`;
+- Lighthouse final: Mobile 88/100 de Performance e Desktop 99/100, com Acessibilidade, Práticas recomendadas e SEO em 100.
+
+**Status:** todos os gates da v1.0.0 aprovados.

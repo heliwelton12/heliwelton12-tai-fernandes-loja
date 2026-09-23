@@ -154,3 +154,62 @@ Mobile:
   fetchpriority="high"
   media="(max-width: 980px)"
 />
+
+## Auditoria pós-migração — Cloudflare Pages
+
+A migração definitiva para Cloudflare Pages foi validada em 23/09/2026.
+
+Origem avaliada:
+
+https://taifernandes-modaintima.pages.dev/
+
+### Resultado final — Mobile
+
+| Métrica | Resultado |
+| --- | ---: |
+| Performance | 88 |
+| Acessibilidade | 100 |
+| Práticas recomendadas | 100 |
+| SEO | 100 |
+| Navegação agêntica | 4/4 |
+| FCP | 2,7 s |
+| LCP | 3,3 s |
+| TBT | 0 ms |
+| CLS | 0 |
+| Speed Index | 2,7 s |
+
+O resultado mobile permaneceu no mesmo patamar observado antes da migração. O Lighthouse informa que os valores são estimados e podem variar entre execuções. :contentReference[oaicite:0]{index=0}
+
+### Resultado final — Desktop
+
+| Categoria | Resultado |
+| --- | ---: |
+| Performance | 99 |
+| Acessibilidade | 100 |
+| Práticas recomendadas | 100 |
+| SEO | 100 |
+| Navegação agêntica | 4/4 |
+
+### Pendências técnicas não bloqueadoras
+
+As seguintes oportunidades permanecem registradas para otimizações futuras:
+
+- reduzir CSS que ainda participa da renderização inicial;
+- avaliar JavaScript não utilizado no bundle público;
+- avaliar compressão adicional do logotipo sem perda visual;
+- revisar futuramente o TTL de cache de alguns assets estáticos;
+- continuar observando o caminho crítico das consultas públicas ao Supabase;
+- acompanhar o LCP mobile, atualmente em aproximadamente 3,3 s.
+
+Esses pontos não são considerados bloqueadores da v1.0.0.
+
+Não será feita alteração estrutural ou visual apenas para elevar artificialmente a pontuação do Lighthouse, especialmente porque:
+
+- TBT permanece em 0 ms;
+- CLS permanece em 0;
+- Acessibilidade está em 100;
+- Práticas recomendadas estão em 100;
+- SEO está em 100;
+- Desktop apresenta Performance 99.
+
+**Status do gate de performance: APROVADO.**
