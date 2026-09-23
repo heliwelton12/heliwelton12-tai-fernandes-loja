@@ -508,3 +508,17 @@ As versões **V6, V8 e V9** existiram como iterações intermediárias, mas não
 - Consultas REST de `products`, `categories` e `store_settings` confirmadas com resposta HTTP 200.
 - Console validado sem erro vermelho relacionado às alterações.
 - Deploy permanece bloqueado até a revisão final dos arquivos modificados e commit único.
+
+### V47.14 — prioridade responsiva do LCP
+
+- PageSpeed Mobile após a V47.13 atingiu Performance 89, Acessibilidade 100, Práticas recomendadas 100, SEO 100 e Navegação agêntica 4/4.
+- O Lighthouse passou a identificar `logo-header.webp` como elemento LCP no viewport mobile.
+- O diagnóstico indicou duas pendências diretas no LCP:
+  - ausência de `fetchpriority="high"` na logo;
+  - logo não descoberta cedo o suficiente no documento inicial.
+- O preload passou a ser responsivo por viewport:
+  - até 980 px: `logo-header.webp` recebe preload e prioridade alta;
+  - a partir de 981 px: `hero-modelo.webp` permanece como preload prioritário.
+- A logo do cabeçalho passou a usar `fetchPriority="high"` somente no mobile.
+- A logo do rodapé permanece com `loading="lazy"`.
+- Nenhuma alteração foi feita nas áreas já aprovadas em 100%.

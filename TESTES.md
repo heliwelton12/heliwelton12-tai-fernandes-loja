@@ -441,3 +441,33 @@ Uma nova versão só deve ser marcada como concluída quando:
 - ⏳ executar PageSpeed Desktop.
 - ⏳ comparar resultados com o baseline anterior.
 - ⏳ somente depois liberar migração para Cloudflare Pages.
+
+## V47.14 — validação da prioridade responsiva do LCP
+
+### Build
+
+- ✅ `npm run build` concluído sem erros.
+- ✅ 81 módulos transformados.
+- ✅ bundle principal permaneceu estável em aproximadamente 279,16 kB / 84,57 kB gzip.
+- ✅ Supabase permanece separado em aproximadamente 223,96 kB / 58,62 kB gzip.
+
+### Preview
+
+- ✅ `npm run preview -- --host`.
+- ✅ home validada em viewport mobile.
+- ✅ home validada em viewport desktop.
+- ✅ logo exibida normalmente.
+- ✅ hero exibido normalmente.
+- ✅ layout sem regressões visuais.
+- ✅ `/admin` funcional.
+- ✅ `/privacidade` funcional.
+- ✅ rota 404 funcional.
+- ✅ Console sem erro vermelho relacionado à V47.14.
+
+### LCP
+
+- ✅ mobile recebe preload de `logo-header.webp`.
+- ✅ mobile recebe `fetchPriority="high"` na logo do cabeçalho.
+- ✅ desktop mantém preload de `hero-modelo.webp`.
+- ✅ logo do desktop não recebe prioridade alta desnecessária.
+- ✅ logo do rodapé permanece lazy.

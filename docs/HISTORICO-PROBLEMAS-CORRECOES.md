@@ -146,3 +146,25 @@ Este documento registra falhas reais encontradas durante o desenvolvimento. Ele 
 **Validação:** em janela anônima, a home carregou normalmente sem solicitar `supabaseClient`. Produtos, categorias e configurações responderam HTTP 200 pela API REST. `/admin`, `/privacidade` e 404 permaneceram funcionais no preview de produção.
 
 **Lição registrada:** code splitting só é efetivo quando dependências grandes deixam de fazer parte do caminho crítico. Mover componentes de rota para chunks separados não era suficiente enquanto o SDK do backend continuava importado diretamente pela home.
+
+```md
+## V47.14 — LCP mobile mudou do hero para a logo
+
+**Sintoma:** após as otimizações anteriores, a Performance mobile subiu de 83 para 89, porém o LCP permaneceu em 3,2 s.
+
+**Diagnóstico:** o Lighthouse passou a identificar `logo-header.webp` como o elemento LCP no mobile.
+
+O preload existente priorizava `hero-modelo.webp` em todos os viewports, embora o hero já não fosse o LCP no teste mobile.
+
+O relatório também indicou que a logo precisava de `fetchpriority="high"` e descoberta antecipada.
+
+**Correção:** foram criados preloads condicionais por media query.
+
+- mobile até 980 px: prioridade para `logo-header.webp`;
+- desktop a partir de 981 px: prioridade mantida para `hero-modelo.webp`.
+
+A logo do cabeçalho também passou a receber `fetchPriority="high"` somente em viewport mobile.
+
+**Proteção contra regressão:** a logo do rodapé permaneceu com lazy loading e nenhuma configuração relacionada a SEO, acessibilidade, CSP ou navegação agêntica foi alterada.
+
+**Validação local:** build e preview concluídos sem erro; home mobile e desktop, painel administrativo, privacidade e 404 permaneceram funcionais.

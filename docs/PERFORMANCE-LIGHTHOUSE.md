@@ -111,3 +111,46 @@ A estratégia foi substituída por preload declarativo diretamente no HTML:
   type="image/webp"
   fetchpriority="high"
 />
+
+## V47.14 — ajuste após PageSpeed Mobile 89
+
+Após o conjunto V47.8–V47.13, o novo PageSpeed Mobile apresentou:
+
+| Métrica | Resultado |
+| --- | ---: |
+| Performance | 89 |
+| Acessibilidade | 100 |
+| Práticas recomendadas | 100 |
+| SEO | 100 |
+| Navegação agêntica | 4/4 |
+| FCP | 2,7 s |
+| LCP | 3,2 s |
+| TBT | 0 ms |
+| CLS | 0 |
+| Speed Index | 2,7 s |
+
+Comparado ao baseline anterior, houve melhora de Performance de 83 para 89, FCP de 3,0 s para 2,7 s e LCP de 3,7 s para 3,2 s.
+
+O novo diagnóstico identificou `logo-header.webp` como elemento LCP no mobile.
+
+O Lighthouse apontou:
+
+- `loading="lazy"` não era utilizado no LCP — aprovado;
+- `fetchpriority="high"` ainda precisava ser aplicado;
+- a imagem LCP precisava ser descoberta mais cedo no documento inicial.
+
+### Estratégia adotada
+
+A prioridade deixou de ser igual para todos os viewports.
+
+Mobile:
+
+```html
+<link
+  rel="preload"
+  href="/logo-header.webp"
+  as="image"
+  type="image/webp"
+  fetchpriority="high"
+  media="(max-width: 980px)"
+/>

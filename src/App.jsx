@@ -1379,16 +1379,26 @@ useEffect(() => {
             )}
           </div>
 
-          <button className="brand" type="button" onClick={goHome} aria-label="Voltar para a página inicial">
-            <img
-  src="/logo-header.webp"
-  alt="Tai Fernandes Moda Íntima"
-  width="438"
-  height="149"
-  loading="eager"
-  decoding="async"
-/>
-          </button>
+       <button
+  className="brand"
+  type="button"
+  onClick={goHome}
+  aria-label="Voltar para a página inicial"
+>
+  <img
+    src="/logo-header.webp"
+    alt="Tai Fernandes Moda Íntima"
+    width="438"
+    height="149"
+    loading="eager"
+    fetchPriority={
+      window.matchMedia('(max-width: 980px)').matches
+        ? 'high'
+        : 'auto'
+    }
+    decoding="async"
+  />
+</button>
 
           <nav className={`mobile-drawer ${menuOpen ? 'open' : ''}`}>
             <button onClick={goHome}>Início</button>
