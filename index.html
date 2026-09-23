@@ -79,10 +79,10 @@
 
     <link rel="manifest" href="/site.webmanifest" />
 
-    <!-- V47.6: prioriza o carregamento da logo do cabeçalho -->
+    <!-- V47.8: o hero é o LCP da home e deve ser descoberto imediatamente -->
     <link
       rel="preload"
-      href="/logo-header.webp"
+      href="/hero-modelo.webp"
       as="image"
       type="image/webp"
       fetchpriority="high"
@@ -109,35 +109,6 @@
       />
 
     </noscript>
-
-    <script>
-
-      // O hero é o LCP atual da vitrine. O preload é restrito à home para
-      // não gerar download/aviso desnecessário no painel administrativo.
-
-      (() => {
-
-        const path = window.location.pathname.replace(/\/+$/, '') || '/'
-
-        if (path !== '/') return
-
-        const preload = document.createElement('link')
-
-        preload.rel = 'preload'
-
-        preload.as = 'image'
-
-        preload.type = 'image/webp'
-
-        preload.href = '/hero-modelo.webp'
-
-        preload.setAttribute('fetchpriority', 'high')
-
-        document.head.appendChild(preload)
-
-      })()
-
-    </script>
 
     <link
       rel="ard"

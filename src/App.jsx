@@ -1,7 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useCatalogProducts } from './lib/catalogBackend'
-import { supabase, supabaseConfigured } from './lib/supabaseClient'
-import { DEFAULT_STORE_SETTINGS, normalizeWhatsapp, useStoreSettings } from './lib/storeSettings'
+import {
+  supabaseConfigured,
+  supabaseRest,
+} from './lib/supabaseRest'
+import {
+  DEFAULT_STORE_SETTINGS,
+  normalizeWhatsapp,
+  useStoreSettings,
+} from './lib/storeSettings'
 
 const SHOW_DEMO_PRODUCTS =
   import.meta.env.DEV || import.meta.env.VITE_SHOW_DEMO_PRODUCTS === 'true'
@@ -406,74 +413,111 @@ const categoryAutoPauseUntilRef = useRef(0)
   } = useCatalogProducts(staticCatalogProducts)
 
   const { settings: storeSettings } = useStoreSettings()
+useEffect(() => {
+  let alive = true
 
-  useEffect(() => {
-    let alive = true
+  async function loadCategoryCovers() {
+    if (!supabaseConfigured) {
+      return
+    }
 
-    async function loadCategoryCovers() {
-      if (!supabaseConfigured || !supabase) return
+    let data = []
 
-      let { data, error } = await supabase
-        .from('categories')
-        .select('id, name, slug, subtitle, sort_order, cover_url, cover_storage_path, is_visible')
-        .order('sort_order')
+    try {
+      const params = new URLSearchParams({
+        select:
+          'id,name,slug,subtitle,sort_order,cover_url,cover_storage_path,is_visible',
+        order: 'sort_order.asc',
+      })
 
-      if (error) {
-        const fallback = await supabase
-          .from('categories')
-          .select('id, name, slug, sort_order, cover_url, cover_storage_path')
-          .order('sort_order')
+      data =
+        (await supabaseRest(
+          `categories?${params.toString()}`
+        )) || []
+    } catch {
+      try {
+        const fallbackParams =
+          new URLSearchParams({
+            select:
+              'id,name,slug,sort_order,cover_url,cover_storage_path',
+            order: 'sort_order.asc',
+          })
 
-        data = (fallback.data || []).map((category) => ({ ...category, is_visible: true }))
-        error = fallback.error
-      }
+        const fallback =
+          (await supabaseRest(
+            `categories?${fallbackParams.toString()}`
+          )) || []
 
-      if (!alive) return
+        data = fallback.map((category) => ({
+          ...category,
+          is_visible: true,
+        }))
+      } catch (loadError) {
+        console.warn(
+          'Falha ao carregar categorias; usando categorias padrão.',
+          loadError
+        )
 
-      if (error) {
-        console.warn('Falha ao carregar categorias; usando categorias padrão.', error)
-        setCategories(DEFAULT_CATEGORIES)
+        if (alive) {
+          setCategories(DEFAULT_CATEGORIES)
+        }
+
         return
       }
+    }
 
-      const defaultsByName = new Map(
-        DEFAULT_CATEGORIES.map((category) => [category.name, category])
-      )
-      const defaultsBySlug = new Map(
-        DEFAULT_CATEGORIES.map((category) => [category.slug, category])
-      )
+    if (!alive) return
 
-      const merged = (data || [])
-        .filter((row) => row.is_visible !== false)
-        .map((row) => {
-        const fallback = defaultsBySlug.get(row.slug) || defaultsByName.get(row.name) || {
-          name: row.name,
-          subtitle: 'Confira nossos produtos',
-          tone: 'rose',
-          adult: row.slug === 'sex-shop',
-        }
+    const defaultsByName = new Map(
+      DEFAULT_CATEGORIES.map((category) => [
+        category.name,
+        category,
+      ])
+    )
+
+    const defaultsBySlug = new Map(
+      DEFAULT_CATEGORIES.map((category) => [
+        category.slug,
+        category,
+      ])
+    )
+
+    const merged = data
+      .filter((row) => row.is_visible !== false)
+      .map((row) => {
+        const fallback =
+          defaultsByName.get(row.name) ||
+          defaultsBySlug.get(row.slug) ||
+          {}
 
         return {
           ...fallback,
           id: row.id,
           name: row.name,
           slug: row.slug,
-          subtitle: row.subtitle?.trim() || fallback.subtitle || 'Confira nossos produtos',
+          subtitle:
+            row.subtitle ||
+            fallback.subtitle ||
+            'Veja nossos produtos',
           sortOrder: row.sort_order,
-          image: row.cover_url || fallback.image || '',
-          coverStoragePath: row.cover_storage_path || '',
+          image:
+            row.cover_url ||
+            fallback.image ||
+            '',
+          coverStoragePath:
+            row.cover_storage_path || '',
         }
       })
 
-      setCategories(merged)
-    }
+    setCategories(merged)
+  }
 
-    loadCategoryCovers()
+  loadCategoryCovers()
 
-    return () => {
-      alive = false
-    }
-  }, [])
+  return () => {
+    alive = false
+  }
+}, [])
 
   const whatsappNumber = normalizeWhatsapp(storeSettings.whatsapp || DEFAULT_STORE_SETTINGS.whatsapp)
   const instagramUrl = storeSettings.instagram_url || DEFAULT_STORE_SETTINGS.instagram_url
@@ -571,50 +615,107 @@ const categoryAutoPauseUntilRef = useRef(0)
 
 
   useEffect(() => {
-    if (!supabaseConfigured || !supabase) {
-      setStoreAdmin(null)
-      return
-    }
+  if (!supabaseConfigured) {
+    setStoreAdmin(null)
+    return
+  }
 
-    let alive = true
+  const hasStoredSupabaseSession = Object.keys(localStorage).some(
+    (key) =>
+      key.startsWith('sb-') &&
+      key.endsWith('-auth-token')
+  )
 
-    async function syncStoreAdmin(session) {
-      if (!session?.user?.id) {
-        if (alive) setStoreAdmin(null)
+  if (!hasStoredSupabaseSession) {
+    setStoreAdmin(null)
+    return
+  }
+
+  let alive = true
+  let unsubscribe = null
+
+  async function checkAdminSession() {
+    try {
+      const { supabase } =
+        await import('./lib/supabaseClient')
+
+      if (!alive || !supabase) {
         return
       }
 
-      const { data, error } = await supabase.rpc('is_admin')
+      async function syncStoreAdmin(session) {
+        if (!session?.user?.id) {
+          if (alive) {
+            setStoreAdmin(null)
+          }
 
-      if (!alive) return
-
-      if (!error && data === true) {
-        setStoreAdmin({
-          id: session.user.id,
-          email: session.user.email || '',
-          displayName: session.user.email?.toLowerCase() === 'tfmodaintima2k26@gmail.com' ? 'Taís Fernandes' : '',
-        })
-      } else {
-        if (error) {
-          console.error('Falha ao verificar sessão administrativa na loja:', error)
+          return
         }
-        setStoreAdmin(null)
+
+        const { data, error } =
+          await supabase.rpc('is_admin')
+
+        if (!alive) return
+
+        if (!error && data === true) {
+          setStoreAdmin({
+            id: session.user.id,
+            email: session.user.email || '',
+            displayName:
+              session.user.email?.toLowerCase() ===
+              'tfmodaintima2k26@gmail.com'
+                ? 'Taís Fernandes'
+                : '',
+          })
+        } else {
+          if (error) {
+            console.error(
+              'Falha ao verificar sessão administrativa na loja:',
+              error
+            )
+          }
+
+          setStoreAdmin(null)
+        }
       }
+
+      const { data } =
+        await supabase.auth.getSession()
+
+      await syncStoreAdmin(
+        data.session || null
+      )
+
+      const { data: authListener } =
+        supabase.auth.onAuthStateChange(
+          (_event, session) => {
+            window.setTimeout(
+              () => syncStoreAdmin(session),
+              0
+            )
+          }
+        )
+
+      unsubscribe = () =>
+        authListener.subscription.unsubscribe()
+    } catch (error) {
+      console.error(
+        'Falha ao carregar sessão administrativa:',
+        error
+      )
     }
+  }
 
-    supabase.auth.getSession().then(({ data }) => {
-      syncStoreAdmin(data.session || null)
-    })
+  checkAdminSession()
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      window.setTimeout(() => syncStoreAdmin(session), 0)
-    })
+  return () => {
+    alive = false
 
-    return () => {
-      alive = false
-      authListener.subscription.unsubscribe()
+    if (unsubscribe) {
+      unsubscribe()
     }
-  }, [])
+  }
+}, [])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -1280,14 +1381,13 @@ useEffect(() => {
 
           <button className="brand" type="button" onClick={goHome} aria-label="Voltar para a página inicial">
             <img
-               src="/logo-header.webp"
+  src="/logo-header.webp"
   alt="Tai Fernandes Moda Íntima"
-  width="480"
-  height="164"
+  width="438"
+  height="149"
   loading="eager"
-  fetchPriority="high"
   decoding="async"
-            />
+/>
           </button>
 
           <nav className={`mobile-drawer ${menuOpen ? 'open' : ''}`}>
@@ -2583,7 +2683,14 @@ useEffect(() => {
       <footer className="premium-footer">
         <div className="premium-footer-main">
           <div className="footer-about">
-            <img src="/logo-header.webp" alt="Tai Fernandes Moda Íntima" />
+            <img
+  src="/logo-header.webp"
+  alt="Tai Fernandes Moda Íntima"
+  width="438"
+  height="149"
+  loading="lazy"
+  decoding="async"
+/>
             <p>{storeSettings.footer_about}</p>
             <div className="footer-social">
               <a href={instagramUrl} target="_blank" rel="noreferrer">

@@ -369,3 +369,75 @@ Uma nova versão só deve ser marcada como concluída quando:
 - ⏳ executar PageSpeed mobile/desktop novamente.
 - ⏳ só liberar o gate quando não houver regressão funcional nem erro relevante de Console/Lighthouse.
 
+## V47.8 a V47.13 — validação pré-deploy final
+
+### Build e integridade
+
+- ✅ `npm run build` concluído sem erro.
+- ✅ 81 módulos transformados no build final local.
+- ✅ `git diff --check` sem erro de whitespace.
+- ℹ️ avisos LF → CRLF observados no Windows são apenas normalização de quebra de linha e não falha de código.
+
+### Code splitting
+
+- ✅ `AdminApp` gerado em chunk JavaScript separado.
+- ✅ `PrivacyPage` gerada em chunk JavaScript separado.
+- ✅ `NotFoundPage` gerada em chunk JavaScript separado.
+- ✅ SDK do Supabase gerado em chunk separado.
+- ✅ bundle principal reduzido de 503,22 kB para 279,08 kB.
+- ✅ bundle principal gzip reduzido de 142,95 kB para 84,54 kB.
+
+### Teste local em produção
+
+- ✅ `npm run preview -- --host`.
+- ✅ `/` abre normalmente.
+- ✅ `/admin` abre normalmente.
+- ✅ `/privacidade` abre normalmente.
+- ✅ rota inexistente exibe a página 404.
+- ✅ painel administrativo continua funcional.
+
+### Supabase público
+
+- ✅ produtos carregados pela API REST.
+- ✅ categorias carregadas pela API REST.
+- ✅ configurações da loja carregadas pela API REST.
+- ✅ requisição `products` retorna HTTP 200.
+- ✅ requisição `categories` retorna HTTP 200.
+- ✅ requisição `store_settings` retorna HTTP 200.
+
+### Carregamento do SDK do Supabase
+
+- ✅ em janela anônima, a home pública não solicita o chunk `supabaseClient`.
+- ✅ referência textual ao nome do chunk dentro do bundle não significa download do arquivo.
+- ✅ SDK completo permanece disponível sob demanda para sessão administrativa e `/admin`.
+
+### LCP e imagens
+
+- ✅ `hero-modelo.webp` permanece com `loading="eager"`.
+- ✅ hero permanece com `fetchPriority="high"`.
+- ✅ preload do hero declarado diretamente no HTML.
+- ✅ preload de logo removido.
+- ✅ logo do cabeçalho sem prioridade alta.
+- ✅ logo do rodapé com dimensões explícitas.
+- ✅ logo do rodapé com lazy loading.
+
+### CSP e Console
+
+- ✅ script inline de preload removido.
+- ✅ hashes CSP antigos relacionados ao preload removidos.
+- ✅ preview local sem erro vermelho relacionado às alterações.
+
+### Gate do deploy
+
+- ✅ validação funcional local aprovada.
+- ✅ validação de build aprovada.
+- ✅ otimização estrutural do bundle aprovada.
+- ⏳ revisar `git status` final.
+- ⏳ revisar documentação.
+- ⏳ criar commit único.
+- ⏳ executar push único para o Netlify.
+- ⏳ aguardar estado `Published`.
+- ⏳ executar PageSpeed Mobile.
+- ⏳ executar PageSpeed Desktop.
+- ⏳ comparar resultados com o baseline anterior.
+- ⏳ somente depois liberar migração para Cloudflare Pages.

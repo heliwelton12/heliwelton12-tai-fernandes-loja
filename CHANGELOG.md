@@ -454,3 +454,57 @@ As versões **V6, V8 e V9** existiram como iterações intermediárias, mas não
 - Registrado que as capas antigas do Supabase precisam ser reenviadas pelo painel para receber a otimização WebP/cache longo introduzida na V47.
 - Registrado passo externo para desativar o Netlify Drawer no ambiente de auditoria, pois o script/iframe injetado pelo Netlify estava gerando ocorrência CSP no Lighthouse.
 
+### V47.8 — correção definitiva do preload do LCP e CSP
+
+- Confirmado pelo Lighthouse que `hero-modelo.webp` é o elemento LCP atual da home.
+- Removido o preload de `logo-header.webp`, evitando competição desnecessária de prioridade com o hero.
+- Removido o script inline que criava dinamicamente o preload do hero.
+- O preload de `hero-modelo.webp` passou a ser declarado diretamente no `<head>` com `fetchpriority="high"`.
+- A política CSP de `public/_headers` foi simplificada, removendo hashes antigos de scripts inline que deixaram de existir.
+- Objetivo: tornar o hero detectável imediatamente no HTML inicial e eliminar ocorrências CSP causadas pelo preload dinâmico.
+
+### V47.9 — code splitting das rotas secundárias
+
+- `AdminApp`, `PrivacyPage` e `NotFoundPage` deixaram de ser imports estáticos do bundle inicial.
+- As três páginas passaram a utilizar `React.lazy()` e `Suspense`.
+- A home deixa de carregar antecipadamente código exclusivo de `/admin`, `/privacidade` e da página 404.
+- As rotas continuam acessíveis diretamente e foram validadas no preview de produção.
+
+### V47.10 — revisão das prioridades e dimensões do logotipo
+
+- Logo do cabeçalho atualizada para as dimensões reais do arquivo otimizado: 438 × 149 px.
+- Removido `fetchPriority="high"` do logotipo do cabeçalho, pois o hero é o LCP real.
+- Logo do rodapé recebeu `width` e `height` explícitos.
+- Logo do rodapé passou a usar `loading="lazy"` e `decoding="async"`.
+- Correção elimina o diagnóstico do Lighthouse sobre imagem do rodapé sem dimensões intrínsecas.
+
+### V47.11 — Supabase removido do bundle crítico da vitrine
+
+- Criado `src/lib/supabaseRest.js` para consultas públicas de leitura usando `fetch` e a API REST do Supabase.
+- Catálogo público deixou de depender do SDK `@supabase/supabase-js` para carregar produtos.
+- Configurações públicas da loja deixaram de depender do SDK para leitura.
+- Categorias da vitrine passaram a ser carregadas pela API REST.
+- O SDK completo do Supabase permanece disponível para autenticação e painel administrativo.
+- O bundle principal caiu de 503,22 kB para aproximadamente 279 kB.
+- O tamanho gzip do bundle principal caiu de 142,95 kB para aproximadamente 84,5 kB.
+- O SDK do Supabase passou a ser gerado em chunk separado de aproximadamente 223,96 kB / 58,62 kB gzip.
+
+### V47.12 — Supabase Auth sob demanda na home
+
+- Removido o carregamento automático do SDK de autenticação após 5 segundos.
+- A home agora verifica primeiro se existe uma sessão Supabase armazenada no navegador.
+- Visitantes comuns não baixam `supabaseClient` durante o carregamento da vitrine.
+- Usuários com sessão administrativa existente continuam tendo a sessão reconhecida.
+- `/admin` continua utilizando normalmente o cliente completo do Supabase.
+- Teste em janela anônima confirmou que o chunk `supabaseClient` não é solicitado pela home pública.
+
+### V47.13 — documentação e gate pré-deploy
+
+- Registradas as otimizações V47.8 a V47.12.
+- Build de produção aprovado após as alterações.
+- `git diff --check` sem erros de whitespace; apenas avisos normais LF/CRLF do Windows.
+- Preview de produção validado localmente.
+- Home, `/admin`, `/privacidade` e rota 404 testadas.
+- Consultas REST de `products`, `categories` e `store_settings` confirmadas com resposta HTTP 200.
+- Console validado sem erro vermelho relacionado às alterações.
+- Deploy permanece bloqueado até a revisão final dos arquivos modificados e commit único.

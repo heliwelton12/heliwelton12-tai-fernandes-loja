@@ -116,3 +116,33 @@ Este documento registra falhas reais encontradas durante o desenvolvimento. Ele 
 
 **Ação:** desativar Netlify Drawer durante a auditoria do ambiente temporário; o Cloudflare Pages não deve introduzir esse componente.
 
+```md
+## V47.8–V47.12 — bundle inicial excessivo e recursos competindo com o LCP
+
+**Sintoma:** mesmo com TBT 0 ms e CLS 0, o PageSpeed mobile permanecia em 83, com FCP de 3,0 s e LCP de 3,7 s.
+
+**Diagnóstico 1 — preload do hero:** o hero era o LCP, mas o preload era criado por um script inline. Além de atrasar a descoberta declarativa do recurso, o script havia apresentado conflito com a CSP.
+
+**Correção V47.8:** preload passou a existir diretamente no HTML. O preload da logo foi removido e os hashes CSP antigos deixaram de ser necessários.
+
+**Diagnóstico 2 — rotas secundárias no carregamento inicial:** `AdminApp`, `PrivacyPage` e `NotFoundPage` eram imports estáticos de `main.jsx`.
+
+**Correção V47.9:** rotas secundárias passaram a usar `React.lazy()` e chunks separados.
+
+**Diagnóstico 3 — prioridades da logo:** a logo ainda recebia prioridade alta mesmo após o hero se tornar o LCP. A logo do rodapé também não possuía dimensões intrínsecas.
+
+**Correção V47.10:** prioridade alta removida da logo; dimensões ajustadas para 438 × 149 px; logo do rodapé configurada com lazy loading e decoding assíncrono.
+
+**Diagnóstico 4 — SDK do Supabase no bundle público:** mesmo após separar `/admin`, o bundle principal continuava com aproximadamente 503,22 kB porque a home importava `@supabase/supabase-js`.
+
+**Correção V47.11:** leituras públicas de produtos, categorias e configurações passaram a usar a API REST via `fetch`. O SDK completo foi separado em chunk próprio.
+
+**Resultado do build:** bundle principal caiu para aproximadamente 279,08 kB, enquanto o Supabase passou para chunk separado de 223,96 kB.
+
+**Diagnóstico 5 — importação tardia ainda desnecessária:** a primeira versão carregava `supabaseClient` automaticamente após cinco segundos, mesmo para visitantes comuns.
+
+**Correção V47.12:** o SDK de autenticação da home só é importado quando existe uma sessão Supabase armazenada no navegador.
+
+**Validação:** em janela anônima, a home carregou normalmente sem solicitar `supabaseClient`. Produtos, categorias e configurações responderam HTTP 200 pela API REST. `/admin`, `/privacidade` e 404 permaneceram funcionais no preview de produção.
+
+**Lição registrada:** code splitting só é efetivo quando dependências grandes deixam de fazer parte do caminho crítico. Mover componentes de rota para chunks separados não era suficiente enquanto o SDK do backend continuava importado diretamente pela home.

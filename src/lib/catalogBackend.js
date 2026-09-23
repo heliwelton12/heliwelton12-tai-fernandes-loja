@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
-import { supabase, supabaseConfigured } from './supabaseClient'
+import {
+  supabaseConfigured,
+  supabaseRest,
+} from './supabaseRest'
 
 function unique(values) {
   return [...new Set(values.filter(Boolean))]
@@ -7,7 +10,9 @@ function unique(values) {
 
 function mapProduct(row) {
   const mediaRows = [...(row.media || [])].sort(
-    (a, b) => Number(b.is_cover) - Number(a.is_cover) || a.sort_order - b.sort_order
+    (a, b) =>
+      Number(b.is_cover) - Number(a.is_cover) ||
+      a.sort_order - b.sort_order
   )
 
   const media = mediaRows.map((item) => ({
@@ -18,9 +23,17 @@ function mapProduct(row) {
     isCover: item.is_cover,
   }))
 
-  const images = media.filter((item) => item.type === 'image').map((item) => item.src)
-  const videos = media.filter((item) => item.type === 'video').map((item) => item.src)
-  const variants = (row.variants || []).filter((variant) => variant.active !== false)
+  const images = media
+    .filter((item) => item.type === 'image')
+    .map((item) => item.src)
+
+  const videos = media
+    .filter((item) => item.type === 'video')
+    .map((item) => item.src)
+
+  const variants = (row.variants || []).filter(
+    (variant) => variant.active !== false
+  )
 
   return {
     id: row.id,
@@ -47,44 +60,35 @@ function mapProduct(row) {
 }
 
 export async function fetchCatalogProducts() {
-  if (!supabaseConfigured || !supabase) return null
+  if (!supabaseConfigured) {
+    return null
+  }
 
-  const { data, error } = await supabase
-    .from('products')
-    .select(`
-      id,
-      slug,
-      name,
-      description,
-      price,
-      status,
-      is_new,
-      is_demo,
-      audience,
-      created_at,
-      category:categories!products_category_id_fkey (
-        name,
-        slug
-      ),
-      media:product_media (
-        id,
-        media_type,
-        url,
-        storage_path,
-        is_cover,
-        sort_order
-      ),
-      variants:product_variants (
-        id,
-        size,
-        color,
-        stock_quantity,
-        active
-      )
-    `)
-    .order('created_at', { ascending: true })
+  const select = [
+    'id',
+    'slug',
+    'name',
+    'description',
+    'price',
+    'status',
+    'is_new',
+    'is_demo',
+    'audience',
+    'created_at',
+    'category:categories!products_category_id_fkey(name,slug)',
+    'media:product_media(id,media_type,url,storage_path,is_cover,sort_order)',
+    'variants:product_variants(id,size,color,stock_quantity,active)',
+  ].join(',')
 
-  if (error) throw error
+  const params = new URLSearchParams({
+    select,
+    order: 'created_at.asc',
+  })
+
+  const data = await supabaseRest(
+    `products?${params.toString()}`
+  )
+
   return (data || []).map(mapProduct)
 }
 
@@ -106,27 +110,44 @@ export function useCatalogProducts(fallbackProducts) {
 
       try {
         setLoading(true)
-        const remoteProducts = await fetchCatalogProducts()
+
+        const remoteProducts =
+          await fetchCatalogProducts()
+
         if (!alive) return
+
         setProducts(remoteProducts || [])
         setConnected(true)
         setError(null)
       } catch (loadError) {
-        console.error('Falha ao carregar catálogo do Supabase:', loadError)
+        console.error(
+          'Falha ao carregar catálogo do Supabase:',
+          loadError
+        )
+
         if (!alive) return
+
         setProducts(fallbackProducts)
         setConnected(false)
         setError(loadError)
       } finally {
-        if (alive) setLoading(false)
+        if (alive) {
+          setLoading(false)
+        }
       }
     }
 
     load()
+
     return () => {
       alive = false
     }
   }, [fallbackProducts])
 
-  return { products, loading, connected, error }
+  return {
+    products,
+    loading,
+    connected,
+    error,
+  }
 }

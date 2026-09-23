@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
-import { supabase, supabaseConfigured } from './supabaseClient'
+import {
+  supabaseConfigured,
+  supabaseRest,
+} from './supabaseRest'
 
 export const DEFAULT_STORE_SETTINGS = {
   id: 1,
@@ -10,17 +13,21 @@ export const DEFAULT_STORE_SETTINGS = {
   address: '',
   service_hours: '',
   pickup_enabled: true,
-  pickup_note: 'O local e o horário da retirada são combinados pelo WhatsApp.',
+  pickup_note:
+    'O local e o horário da retirada são combinados pelo WhatsApp.',
   delivery_enabled: true,
-  delivery_note: 'A disponibilidade da entrega é confirmada pelo WhatsApp.',
-  delivery_fee_note: 'A taxa de entrega é confirmada pelo WhatsApp.',
+  delivery_note:
+    'A disponibilidade da entrega é confirmada pelo WhatsApp.',
+  delivery_fee_note:
+    'A taxa de entrega é confirmada pelo WhatsApp.',
   accept_pix: true,
   accept_card: true,
   accept_cash: true,
-  footer_about: 'Moda íntima escolhida para valorizar conforto, confiança e beleza em cada detalhe.',
-  footer_tagline: 'Mais que moda íntima, é sobre você.',
+  footer_about:
+    'Moda íntima escolhida para valorizar conforto, confiança e beleza em cada detalhe.',
+  footer_tagline:
+    'Mais que moda íntima, é sobre você.',
 }
-
 
 export const STORE_SETTINGS_FIELDS = [
   'id',
@@ -40,53 +47,76 @@ export const STORE_SETTINGS_FIELDS = [
   'accept_cash',
   'footer_about',
   'footer_tagline',
-].join(', ')
+].join(',')
 
 export function normalizeWhatsapp(value) {
   return String(value || '').replace(/\D/g, '')
 }
 
 export async function fetchStoreSettings() {
-  if (!supabaseConfigured || !supabase) return null
+  if (!supabaseConfigured) {
+    return null
+  }
 
-  const { data, error } = await supabase
-    .from('store_settings')
-    .select(STORE_SETTINGS_FIELDS)
-    .eq('id', 1)
-    .maybeSingle()
+  const params = new URLSearchParams({
+    select: STORE_SETTINGS_FIELDS,
+    id: 'eq.1',
+    limit: '1',
+  })
 
-  if (error) throw error
-  return data
+  const data = await supabaseRest(
+    `store_settings?${params.toString()}`
+  )
+
+  return data?.[0] || null
 }
 
 export function useStoreSettings() {
-  const [settings, setSettings] = useState(DEFAULT_STORE_SETTINGS)
-  const [loading, setLoading] = useState(supabaseConfigured)
+  const [settings, setSettings] = useState(
+    DEFAULT_STORE_SETTINGS
+  )
+
+  const [loading, setLoading] =
+    useState(supabaseConfigured)
+
   const [error, setError] = useState(null)
 
   useEffect(() => {
     let alive = true
 
     async function load() {
-      if (!supabaseConfigured || !supabase) {
+      if (!supabaseConfigured) {
         setLoading(false)
         return
       }
 
       try {
-        const remote = await fetchStoreSettings()
+        const remote =
+          await fetchStoreSettings()
+
         if (!alive) return
 
         if (remote) {
-          setSettings((current) => ({ ...current, ...remote }))
+          setSettings((current) => ({
+            ...current,
+            ...remote,
+          }))
         }
 
         setError(null)
       } catch (loadError) {
-        console.error('Falha ao carregar configurações da loja:', loadError)
-        if (alive) setError(loadError)
+        console.error(
+          'Falha ao carregar configurações da loja:',
+          loadError
+        )
+
+        if (alive) {
+          setError(loadError)
+        }
       } finally {
-        if (alive) setLoading(false)
+        if (alive) {
+          setLoading(false)
+        }
       }
     }
 
@@ -97,5 +127,10 @@ export function useStoreSettings() {
     }
   }, [])
 
-  return { settings, loading, error, setSettings }
+  return {
+    settings,
+    loading,
+    error,
+    setSettings,
+  }
 }

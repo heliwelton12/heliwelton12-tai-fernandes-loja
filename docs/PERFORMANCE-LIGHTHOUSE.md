@@ -91,3 +91,23 @@ O próximo PageSpeed deve ser executado somente depois de:
 
 A meta não é manipular a pontuação, e sim remover gargalos reais. Performance mobile abaixo de 90 será novamente investigada antes de encerrar o gate.
 
+## Ciclo final de otimização antes da migração — V47.8 a V47.12
+
+O reteste com Performance mobile em 83 confirmou que ainda existiam gargalos técnicos objetivos e corrigíveis. Por isso, o gate não foi encerrado naquele momento.
+
+### V47.8 — descoberta do LCP
+
+O `hero-modelo.webp` foi confirmado como o LCP da página.
+
+O preload anterior era criado por JavaScript inline, introduzindo dependência desnecessária de execução de script e interação com a Content Security Policy.
+
+A estratégia foi substituída por preload declarativo diretamente no HTML:
+
+```html
+<link
+  rel="preload"
+  href="/hero-modelo.webp"
+  as="image"
+  type="image/webp"
+  fetchpriority="high"
+/>
