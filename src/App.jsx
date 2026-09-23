@@ -395,6 +395,9 @@ function App() {
     supabaseConfigured ? [] : DEFAULT_CATEGORIES
   )
   const categoryTrackRef = useRef(null)
+  const categoryAutoDirectionRef = useRef(1)
+const categoryAutoPauseUntilRef = useRef(0)
+
 
   const {
     products: catalogProducts,
@@ -708,16 +711,71 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  function scrollCategories(direction) {
-    const track = categoryTrackRef.current
-    if (!track) return
+function pauseCategoryAutoplay(ms = 5000) {
+  categoryAutoPauseUntilRef.current = Date.now() + ms
+}
 
-    const amount = Math.max(track.clientWidth * 0.78, 260)
-    track.scrollBy({
-      left: direction * amount,
+function scrollCategories(direction) {
+  const track = categoryTrackRef.current
+  if (!track) return
+
+  categoryAutoDirectionRef.current = direction
+  pauseCategoryAutoplay()
+
+  const amount = Math.max(track.clientWidth * 0.72, 240)
+
+  track.scrollBy({
+    left: direction * amount,
+    behavior: 'smooth',
+  })
+}
+
+useEffect(() => {
+  const prefersReducedMotion = window.matchMedia?.(
+    '(prefers-reduced-motion: reduce)'
+  ).matches
+
+  if (prefersReducedMotion) return undefined
+
+  const intervalId = window.setInterval(() => {
+    const track = categoryTrackRef.current
+
+    if (!track) return
+    if (Date.now() < categoryAutoPauseUntilRef.current) return
+
+    const maxScroll = track.scrollWidth - track.clientWidth
+
+    if (maxScroll <= 8) return
+
+    const tolerance = 12
+
+    if (track.scrollLeft >= maxScroll - tolerance) {
+      categoryAutoDirectionRef.current = -1
+    } else if (track.scrollLeft <= tolerance) {
+      categoryAutoDirectionRef.current = 1
+    }
+
+    const amount = Math.max(track.clientWidth * 0.72, 240)
+
+    const targetScroll = Math.max(
+      0,
+      Math.min(
+        maxScroll,
+        track.scrollLeft +
+          categoryAutoDirectionRef.current * amount
+      )
+    )
+
+    track.scrollTo({
+      left: targetScroll,
       behavior: 'smooth',
     })
+  }, 3500)
+
+  return () => {
+    window.clearInterval(intervalId)
   }
+}, [categories.length])
 
   function openCategory(categoryName) {
     const category = categories.find((item) => item.name === categoryName)
@@ -1222,11 +1280,13 @@ function App() {
 
           <button className="brand" type="button" onClick={goHome} aria-label="Voltar para a página inicial">
             <img
-              src="/logo-header.webp"
-              alt="Tai Fernandes Moda Íntima"
-              width="480"
-              height="164"
-              decoding="async"
+               src="/logo-header.webp"
+  alt="Tai Fernandes Moda Íntima"
+  width="480"
+  height="164"
+  loading="eager"
+  fetchPriority="high"
+  decoding="async"
             />
           </button>
 
@@ -1516,7 +1576,12 @@ function App() {
               </div>
             </div>
 
-            <div className="categories-track" ref={categoryTrackRef}>
+            <div
+  className="categories-track"
+  ref={categoryTrackRef}
+  onPointerDown={() => pauseCategoryAutoplay(5000)}
+  onWheel={() => pauseCategoryAutoplay(5000)}
+>
               {categories.map((category) => (
                 <article className={`category-card tone-${category.tone}`} key={category.id || category.name}>
                   <button
