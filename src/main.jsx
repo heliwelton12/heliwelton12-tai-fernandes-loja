@@ -49,7 +49,7 @@ if (isAdminRoute) {
 
 if (isPrivacyRoute) {
   const privacyUrl =
-    'https://taifernandes-modaintima.netlify.app/privacidade'
+    'https://taifernandes-modaintima.pages.dev/privacidade'
 
   document.title =
     'Política de Privacidade | Tai Fernandes Moda Íntima'
