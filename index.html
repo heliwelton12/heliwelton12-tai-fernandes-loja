@@ -1,99 +1,190 @@
 <!doctype html>
+
 <html lang="pt-BR">
+
   <head>
+
     <meta charset="UTF-8" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Tai Fernandes Moda Íntima | Lingeries, Pijamas e Bem-estar</title>
+
     <meta
       name="description"
       content="Tai Fernandes Moda Íntima: lingeries, conjuntos, camisolas, pijamas, baby dolls e itens de bem-estar. Escolha seus produtos e finalize o pedido pelo WhatsApp."
     />
+
     <meta name="robots" content="index, follow, max-image-preview:large" />
+
     <meta name="theme-color" content="#be536f" />
+
     <meta name="color-scheme" content="light" />
 
     <!-- URL temporária. Será trocada pelo domínio definitivo na publicação do Cloudflare. -->
     <link rel="canonical" href="https://taifernandes-modaintima.netlify.app/" />
 
     <meta property="og:type" content="website" />
+
     <meta property="og:locale" content="pt_BR" />
+
     <meta property="og:site_name" content="Tai Fernandes Moda Íntima" />
-    <meta property="og:title" content="Tai Fernandes Moda Íntima | Lingeries, Pijamas e Bem-estar" />
+
+    <meta
+      property="og:title"
+      content="Tai Fernandes Moda Íntima | Lingeries, Pijamas e Bem-estar"
+    />
+
     <meta
       property="og:description"
       content="Moda íntima, conforto e bem-estar. Escolha seus produtos e finalize o pedido pelo WhatsApp."
     />
-    <meta property="og:url" content="https://taifernandes-modaintima.netlify.app/" />
-    <meta property="og:image" content="https://taifernandes-modaintima.netlify.app/og-image.jpg" />
+
+    <meta
+      property="og:url"
+      content="https://taifernandes-modaintima.netlify.app/"
+    />
+
+    <meta
+      property="og:image"
+      content="https://taifernandes-modaintima.netlify.app/og-image.jpg"
+    />
+
     <meta property="og:image:width" content="1200" />
+
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Tai Fernandes Moda Íntima — moda íntima, conforto e bem-estar" />
+
+    <meta
+      property="og:image:alt"
+      content="Tai Fernandes Moda Íntima — moda íntima, conforto e bem-estar"
+    />
 
     <meta name="twitter:card" content="summary_large_image" />
+
     <meta name="twitter:title" content="Tai Fernandes Moda Íntima" />
+
     <meta
       name="twitter:description"
       content="Moda íntima, conforto e bem-estar. Escolha seus produtos e finalize o pedido pelo WhatsApp."
     />
-    <meta name="twitter:image" content="https://taifernandes-modaintima.netlify.app/og-image.jpg" />
+
+    <meta
+      name="twitter:image"
+      content="https://taifernandes-modaintima.netlify.app/og-image.jpg"
+    />
 
     <link rel="icon" href="/favicon.ico" sizes="any" />
+
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
     <link rel="manifest" href="/site.webmanifest" />
 
+    <!-- V47.6: prioriza o carregamento da logo do cabeçalho -->
+    <link
+      rel="preload"
+      href="/logo-header.webp"
+      as="image"
+      type="image/webp"
+      fetchpriority="high"
+    />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
+
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
     <link
       id="store-fonts"
       href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap"
       rel="stylesheet"
       media="print"
     />
+
     <script defer src="/font-loader.js"></script>
+
     <noscript>
+
       <link
         href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap"
         rel="stylesheet"
       />
+
     </noscript>
+
     <script>
+
       // O hero é o LCP atual da vitrine. O preload é restrito à home para
       // não gerar download/aviso desnecessário no painel administrativo.
+
       (() => {
+
         const path = window.location.pathname.replace(/\/+$/, '') || '/'
+
         if (path !== '/') return
 
         const preload = document.createElement('link')
+
         preload.rel = 'preload'
+
         preload.as = 'image'
+
         preload.type = 'image/webp'
+
         preload.href = '/hero-modelo.webp'
+
         preload.setAttribute('fetchpriority', 'high')
+
         document.head.appendChild(preload)
+
       })()
+
     </script>
-    <link rel="ard" href="/.well-known/ard.json" type="application/json" />
+
+    <link
+      rel="ard"
+      href="/.well-known/ard.json"
+      type="application/json"
+    />
 
     <script type="application/ld+json">
+
       {
+
         "@context": "https://schema.org",
+
         "@type": "Store",
+
         "@id": "https://taifernandes-modaintima.netlify.app/#store",
+
         "name": "Tai Fernandes Moda Íntima",
+
         "url": "https://taifernandes-modaintima.netlify.app/",
+
         "logo": "https://taifernandes-modaintima.netlify.app/logo-header.webp",
+
         "image": "https://taifernandes-modaintima.netlify.app/og-image.jpg",
+
         "telephone": "+55 75 98153-7356",
+
         "sameAs": [
+
           "https://www.instagram.com/tf.modaintima2"
+
         ],
+
         "description": "Loja de moda íntima com lingeries, conjuntos, camisolas, pijamas, baby dolls e itens de bem-estar, com pedidos finalizados pelo WhatsApp."
+
       }
+
     </script>
+
   </head>
+
   <body>
+
     <div id="root"></div>
+
     <script type="module" src="/src/main.jsx"></script>
+
   </body>
+
 </html>
