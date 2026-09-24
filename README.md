@@ -1,10 +1,41 @@
+<div align="center">
+
 # Tai Fernandes — Moda Íntima
 
-Loja virtual responsiva para **Tai Fernandes Moda Íntima**, com catálogo administrável, favoritos, sacola, checkout e finalização de pedido pelo WhatsApp.
+### Loja virtual responsiva com catálogo administrável e pedidos pelo WhatsApp
 
-> **Estado atual:** V47 — projeto migrado com sucesso do Netlify para Cloudflare Pages em 23/09/2026. Home, painel administrativo, Política de Privacidade, rota 404, catálogo e integração com Supabase validados no novo ambiente.
+Projeto real desenvolvido para organizar a presença digital da **Tai Fernandes Moda Íntima**, reunindo catálogo, favoritos, sacola, checkout, painel administrativo e integração com Supabase.
+
+<br>
+
+<a href="https://taifernandes-modaintima.pages.dev/">
+  <img src="https://img.shields.io/badge/ACESSAR%20LOJA-0EA5E9?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Acessar Tai Fernandes Moda Íntima" />
+</a>
+
+<br><br>
+
+<img src="https://img.shields.io/badge/STATUS-PUBLICADO-22C55E?style=flat-square" alt="Publicado" />
+<img src="https://img.shields.io/badge/HOSPEDAGEM-CLOUDFLARE%20PAGES-F38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare Pages" />
+<img src="https://img.shields.io/badge/BACKEND-SUPABASE-3ECF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
+<img src="https://img.shields.io/badge/VERS%C3%83O-V47-334155?style=flat-square" alt="Versão V47" />
+
+</div>
+
+---
+
+## Sobre o projeto
+
+A aplicação foi construída com foco em uma experiência simples para a cliente e em autonomia para a administração da loja.
+
+A loja pública permite navegar pelo catálogo, pesquisar produtos, favoritar itens, montar a sacola e finalizar o pedido pelo WhatsApp. O painel administrativo permite gerenciar produtos, categorias, mídias, disponibilidade e configurações sem alterar o código da aplicação.
+
+> **Estado atual:** projeto publicado em produção no Cloudflare Pages, com catálogo, painel administrativo, Política de Privacidade, rota 404 e integração com Supabase validados no ambiente oficial.
 
 ## Tecnologias
+
+<p>
+  <img src="https://skillicons.dev/icons?i=react,vite,js,css,supabase,git,github,cloudflare" alt="React, Vite, JavaScript, CSS, Supabase, Git, GitHub e Cloudflare" />
+</p>
 
 - React 19
 - Vite 7
@@ -192,8 +223,8 @@ Enquanto a revisão final estiver em andamento:
 
 ## Próximas etapas
 
-1. concluir auditoria pós-migração no Cloudflare Pages;
-2. executar PageSpeed Mobile e Desktop na origem oficial;
-3. registrar eventuais pendências reais de performance;
-4. concluir regressão final da v1.0.0;
-5. criar a tag estável quando todos os gates forem aprovados.
+1. acompanhar o comportamento do site em produção;
+2. registrar novas melhorias e correções no `CHANGELOG.md`;
+3. manter os testes de regressão documentados no `TESTES.md`;
+4. continuar refinando desempenho, acessibilidade e experiência mobile;
+5. consolidar a próxima versão estável após novas evoluções do projeto.
